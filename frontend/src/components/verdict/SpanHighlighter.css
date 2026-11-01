@@ -1,0 +1,21 @@
+.span-highlighter {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.span-token {
+  display: inline;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.span-token:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
