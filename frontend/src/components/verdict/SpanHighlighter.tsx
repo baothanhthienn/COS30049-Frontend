@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { TriggerSpan, AttackFamily } from '../../types/api'
 import './SpanHighlighter.css'
 
