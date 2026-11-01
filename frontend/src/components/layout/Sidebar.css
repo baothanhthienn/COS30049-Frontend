@@ -1,0 +1,98 @@
+.sidebar {
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar__top {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.sidebar__new-btn {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-align: left;
+  transition: background 0.15s;
+}
+.sidebar__new-btn:hover { background: var(--color-raised); }
+.sidebar__new-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.sidebar__history {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-2);
+}
+
+.sidebar__empty {
+  color: var(--color-text-subtle);
+  font-size: var(--text-sm);
+  padding: var(--space-3);
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+.sidebar__item:hover { background: var(--color-raised); }
+
+.sidebar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.sidebar__dot--allow { background: var(--color-benign); }
+.sidebar__dot--blocked { background: var(--color-blocked); }
+
+.sidebar__preview {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__footer {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sidebar__trend-link {
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+.sidebar__trend-link:hover { color: var(--color-accent-hover); }
+
+.sidebar__session-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sidebar__session-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.sidebar__clear-btn {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  text-decoration: underline;
+}
+.sidebar__clear-btn:hover { color: var(--color-blocked); }
