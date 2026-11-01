@@ -34,10 +34,13 @@ interface SessionState {
   toggleTheme: () => void
 }
 
+const DEFAULT_THEME = 'light'
+document.documentElement.dataset.theme = DEFAULT_THEME
+
 export const useSessionStore = create<SessionState>((set) => ({
   sessionId: getOrCreateSessionId(),
   messages: [],
-  theme: 'dark',
+  theme: DEFAULT_THEME,
 
   addUserMessage: (text) => {
     const id = uuidv4()
