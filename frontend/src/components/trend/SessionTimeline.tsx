@@ -5,10 +5,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Brush,
   ResponsiveContainer,
-  Cell,
-  Legend,
 } from 'recharts'
 import type { TrendPoint, AttackFamily } from '../../types/api'
 import { FAMILY_META } from './familyMeta'
@@ -39,9 +36,9 @@ const SHAPE_MAP: Record<string, string> = {
   benign:               'circle',
 }
 
-function CustomShape(props: {
-  cx?: number; cy?: number; payload?: PlotPoint; onClick?: (p: PlotPoint) => void
-}) {
+type ShapeProps = { cx?: number; cy?: number; payload?: PlotPoint; onClick?: (p: PlotPoint) => void }
+
+function CustomShape(props: ShapeProps) {
   const { cx = 0, cy = 0, payload } = props
   if (!payload) return null
   const color = payload.verdict === 'BLOCKED'
@@ -85,6 +82,20 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
   )
 }
 
+function FamilyLegend({ families }: { families: AttackFamily[] }) {
+  if (families.length === 0) return null
+  return (
+    <div className="timeline-legend">
+      {families.map((f) => (
+        <span key={f} className="timeline-legend__item">
+          <span className="timeline-legend__dot" style={{ background: FAMILY_META[f]?.color ?? '#888' }} />
+          {FAMILY_META[f]?.label ?? f}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export default function SessionTimeline({ points, activeFilters, onPointClick }: Props) {
   if (points.length === 0) {
     return (
@@ -112,8 +123,9 @@ export default function SessionTimeline({ points, activeFilters, onPointClick }:
 
   return (
     <div className="timeline">
-      <ResponsiveContainer width="100%" height={340}>
-        <ScatterChart margin={{ top: 16, right: 24, bottom: 16, left: 0 }}>
+      <FamilyLegend families={families} />
+      <ResponsiveContainer width="100%" height={320}>
+        <ScatterChart margin={{ top: 8, right: 24, bottom: 24, left: 0 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="var(--color-divider)"
@@ -124,7 +136,7 @@ export default function SessionTimeline({ points, activeFilters, onPointClick }:
             type="number"
             domain={['dataMin', 'dataMax']}
             tick={{ fontSize: 11, fill: 'var(--color-text-subtle)' }}
-            label={{ value: 'Message #', position: 'insideBottom', offset: -4, fontSize: 11, fill: 'var(--color-text-muted)' }}
+            label={{ value: 'Message #', position: 'insideBottom', offset: -8, fontSize: 11, fill: 'var(--color-text-muted)' }}
             tickLine={false}
             axisLine={{ stroke: 'var(--color-border)' }}
           />
@@ -140,60 +152,32 @@ export default function SessionTimeline({ points, activeFilters, onPointClick }:
             width={52}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend
-            verticalAlign="top"
-            align="right"
-            iconType="circle"
-            iconSize={8}
-            formatter={(value) => (
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{value}</span>
-            )}
-            payload={families.map((f) => ({
-              value: FAMILY_META[f]?.label ?? f,
-              type: 'circle' as const,
-              color: FAMILY_META[f]?.color ?? '#888',
-            }))}
-          />
-          <Brush
-            dataKey="x"
-            height={20}
-            stroke="var(--color-border)"
-            fill="var(--color-raised)"
-            travellerWidth={6}
-            startIndex={Math.max(0, plotData.length - 20)}
-          />
 
-          {/* BLOCKED points */}
           <Scatter
             name="BLOCKED"
             data={blocked}
-            shape={(props: Record<string, unknown>) => (
+            shape={(props) => (
               <CustomShape
-                {...(props as { cx?: number; cy?: number; payload?: PlotPoint })}
+                cx={(props as ShapeProps).cx}
+                cy={(props as ShapeProps).cy}
+                payload={props.payload as PlotPoint}
                 onClick={(p) => onPointClick?.(p.raw)}
               />
             )}
-          >
-            {blocked.map((entry, i) => (
-              <Cell key={i} fill={FAMILY_META[entry.family]?.color ?? '#e05c5c'} />
-            ))}
-          </Scatter>
+          />
 
-          {/* ALLOW points */}
           <Scatter
             name="ALLOW"
             data={allowed}
-            shape={(props: Record<string, unknown>) => (
+            shape={(props) => (
               <CustomShape
-                {...(props as { cx?: number; cy?: number; payload?: PlotPoint })}
+                cx={(props as ShapeProps).cx}
+                cy={(props as ShapeProps).cy}
+                payload={props.payload as PlotPoint}
                 onClick={(p) => onPointClick?.(p.raw)}
               />
             )}
-          >
-            {allowed.map((_, i) => (
-              <Cell key={i} fill="var(--color-benign)" />
-            ))}
-          </Scatter>
+          />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

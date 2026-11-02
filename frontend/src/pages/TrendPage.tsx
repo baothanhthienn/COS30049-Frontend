@@ -80,10 +80,8 @@ export default function TrendPage() {
     <div className="trend-page">
       <div className="trend-page__header">
         <h1 className="trend-page__title">Session trend</h1>
-        {!loading && (
-          <span className="trend-page__source">
-            {remotePoints ? 'Live data' : 'Local session'}
-          </span>
+        {!loading && remotePoints && (
+          <span className="trend-page__source">Live data</span>
         )}
       </div>
 
