@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../../store/sessionStore'
 import './Topbar.css'
 
@@ -6,9 +7,13 @@ const MODEL_VERSION = import.meta.env.VITE_MODEL_VERSION || 'v1.0'
 const RETRY_INTERVAL = 10
 
 export default function Topbar() {
-  const { theme, toggleTheme } = useSessionStore()
+  const { theme, toggleTheme, resetSession } = useSessionStore()
+  const navigate = useNavigate()
   const [offline, setOffline] = useState(!navigator.onLine)
   const [countdown, setCountdown] = useState(RETRY_INTERVAL)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const on = () => { setOffline(false); setCountdown(RETRY_INTERVAL) }
@@ -29,6 +34,40 @@ export default function Topbar() {
     return () => clearInterval(tick)
   }, [offline])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    document.addEventListener('keydown', handleEsc)
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('keydown', handleEsc)
+    }
+  }, [menuOpen])
+
+  function handleThemeToggle() {
+    toggleTheme()
+    setMenuOpen(false)
+  }
+
+  function handleClearSession() {
+    setMenuOpen(false)
+    if (window.confirm('Clear session and all history? This cannot be undone.')) {
+      resetSession()
+      navigate('/')
+    }
+  }
+
   return (
     <>
       {offline && (
@@ -37,18 +76,50 @@ export default function Topbar() {
         </div>
       )}
       <header className="topbar">
-        <span className="topbar__title">Prompt Injection Detector</span>
+        <span className="topbar__logo">Prompt Injection Detector</span>
         <div className="topbar__right">
           <span className="topbar__model" aria-label={`Model version ${MODEL_VERSION}`}>
             {MODEL_VERSION}
           </span>
-          <button
-            className="topbar__theme-toggle"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-          >
-            {theme === 'dark' ? '☀' : '☽'}
-          </button>
+
+          <div className="topbar__more-wrap" ref={menuRef}>
+            <button
+              ref={triggerRef}
+              className="topbar__more-btn"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label="More options"
+            >
+              ···
+            </button>
+
+            {menuOpen && (
+              <div className="topbar__menu" role="menu" aria-label="More options">
+                <button
+                  className="topbar__menu-item"
+                  role="menuitem"
+                  onClick={handleThemeToggle}
+                >
+                  <span className="topbar__menu-icon" aria-hidden="true">
+                    {theme === 'dark' ? '☀' : '☽'}
+                  </span>
+                  {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                </button>
+
+                <div className="topbar__menu-divider" role="separator" />
+
+                <button
+                  className="topbar__menu-item topbar__menu-item--danger"
+                  role="menuitem"
+                  onClick={handleClearSession}
+                >
+                  <span className="topbar__menu-icon" aria-hidden="true">⊗</span>
+                  Clear session
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
     </>

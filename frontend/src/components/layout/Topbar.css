@@ -9,10 +9,13 @@
   flex-shrink: 0;
 }
 
-.topbar__title {
+/* Bold logo wordmark */
+.topbar__logo {
   font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-muted);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  user-select: none;
 }
 
 .topbar__right {
@@ -30,16 +33,79 @@
   border: 1px solid var(--color-border);
 }
 
-.topbar__theme-toggle {
-  padding: var(--space-2);
+.topbar__more-wrap {
+  position: relative;
+}
+
+.topbar__more-btn {
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.1em;
   color: var(--color-text-muted);
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
-.topbar__theme-toggle:hover { color: var(--color-text); }
-.topbar__theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.topbar__more-btn:hover { color: var(--color-text); background: var(--color-raised); }
+.topbar__more-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.topbar__more-btn[aria-expanded="true"] {
+  color: var(--color-text);
+  background: var(--color-raised);
+}
+
+.topbar__menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  min-width: 180px;
+  background: var(--color-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  overflow: hidden;
+  animation: topbar-menu-in 0.12s ease-out;
+}
+
+@keyframes topbar-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar__menu { animation: none; }
+}
+
+.topbar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  text-align: left;
+  transition: background 0.1s;
+}
+.topbar__menu-item:hover { background: var(--color-sidebar); }
+.topbar__menu-item:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--color-accent); }
+
+.topbar__menu-item--danger { color: var(--color-blocked); }
+.topbar__menu-item--danger:hover { background: var(--color-blocked-bg); }
+
+.topbar__menu-icon {
+  font-size: var(--text-base);
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.topbar__menu-divider {
+  height: 1px;
+  background: var(--color-divider);
+  margin: var(--space-1) 0;
+}
 
 .topbar-offline {
   background: var(--color-blocked-bg);
