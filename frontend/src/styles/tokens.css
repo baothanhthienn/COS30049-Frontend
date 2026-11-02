@@ -15,9 +15,9 @@
   --color-text-subtle:  #6b6b76;
 
 
-  --color-benign:       #10a37f;  
-  --color-blocked:      #9e0404;  
-  --color-blocked-bg:   rgba(248, 15, 15, 0.968);  
+  --color-benign:       #10a37f;
+  --color-blocked:      #f87171;
+  --color-blocked-bg:   rgba(248, 113, 113, 0.1);
 
 
   --color-accent:       #ececec;

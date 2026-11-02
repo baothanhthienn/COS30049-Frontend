@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { classify, ApiError } from '../api/client'
+import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
 import ChatComposer from '../components/chat/ChatComposer'
 import './ChatPage.css'
 
 export default function ChatPage() {
-  const { messages, sessionId, addUserMessage, addAssistantResult, addAssistantError } =
+  const { messages, sessionId, addUserMessage, addAssistantResult, addAssistantError, resetSession } =
     useSessionStore()
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const location = useLocation()
+  const [_focusedIdx, setFocusedIdx] = useState<number | null>(null)
 
   // Scroll to a specific message when navigated from TrendPage
   useEffect(() => {
@@ -62,6 +64,25 @@ export default function ChatPage() {
     },
     [isLoading, runClassify],
   )
+
+  // J/K navigation: collect all pair elements in DOM order
+  function scrollToPair(delta: number) {
+    const pairEls = Array.from(document.querySelectorAll<HTMLElement>('[id^="msg-"]'))
+    if (pairEls.length === 0) return
+    setFocusedIdx((prev) => {
+      const base = prev === null ? (delta > 0 ? -1 : pairEls.length) : prev
+      const next = Math.max(0, Math.min(pairEls.length - 1, base + delta))
+      pairEls[next]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return next
+    })
+  }
+
+  useShortcuts({
+    focusComposer: () => composerRef.current?.focus(),
+    newAnalysis: () => { resetSession(); composerRef.current?.focus() },
+    prevMessage: () => scrollToPair(-1),
+    nextMessage: () => scrollToPair(1),
+  })
 
   return (
     <div className="chat-page">

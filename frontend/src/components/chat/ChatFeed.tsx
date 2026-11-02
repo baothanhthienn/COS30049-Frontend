@@ -76,7 +76,14 @@ export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
           </div>
           <div className="chat-feed__assistant">
             {!assistant && (
-              <div className="chat-feed__skeleton" aria-label="Analysing…">
+              <div className="chat-feed__skeleton" aria-label="Analysing…" aria-busy="true">
+                {/* badge row */}
+                <div className="chat-feed__skeleton-row">
+                  <div className="chat-feed__skeleton-badge" />
+                  <div className="chat-feed__skeleton-meter" />
+                </div>
+                {/* content rows */}
+                <div className="chat-feed__skeleton-line" style={{ width: '80%' }} />
                 <div className="chat-feed__skeleton-line" style={{ width: '60%' }} />
                 <div className="chat-feed__skeleton-line" style={{ width: '40%' }} />
               </div>
