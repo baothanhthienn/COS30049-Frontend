@@ -9,7 +9,21 @@
 .sidebar__top {
   padding: var(--space-3);
   border-bottom: 1px solid var(--color-divider);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
+
+.sidebar__close-btn {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.sidebar__close-btn:hover { color: var(--color-text); background: var(--color-raised); }
+.sidebar__close-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 .sidebar__new-btn {
   width: 100%;

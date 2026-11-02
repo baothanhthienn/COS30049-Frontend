@@ -7,7 +7,7 @@
 
 .fam-row {
   display: grid;
-  grid-template-columns: 160px 1fr 40px;
+  grid-template-columns: 18px 140px 1fr 40px;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
@@ -19,6 +19,13 @@
 .fam-row:hover { background: var(--color-raised); }
 .fam-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
+.fam-row__icon {
+  font-size: 10px;
+  color: var(--color-text-subtle);
+  line-height: 1;
+}
+.fam-row--top .fam-row__icon { color: var(--color-blocked); }
+
 .fam-row__label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -26,6 +33,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.fam-row--top .fam-row__label { color: var(--color-text); }
 
 .fam-row__bar-track {
   height: 6px;
@@ -36,6 +44,7 @@
 
 .fam-row__bar {
   height: 100%;
+  background: var(--chart-highlight);
   border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }
@@ -46,3 +55,4 @@
   color: var(--color-text-subtle);
   text-align: right;
 }
+.fam-row--top .fam-row__score { color: var(--color-blocked); }

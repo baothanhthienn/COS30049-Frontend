@@ -16,7 +16,7 @@
   color: var(--color-blocked);
 }
 .verdict-badge--allow {
-  background: var(--color-benign-bg);
+  background: rgba(16, 163, 127, 0.1);
   color: var(--color-benign);
 }
 

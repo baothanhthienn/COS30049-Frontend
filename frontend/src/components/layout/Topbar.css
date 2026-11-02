@@ -15,6 +15,21 @@
   color: var(--color-text-muted);
 }
 
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.topbar__model {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--color-text-subtle);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
 .topbar__theme-toggle {
   padding: var(--space-2);
   border-radius: var(--radius-sm);
@@ -25,3 +40,12 @@
 }
 .topbar__theme-toggle:hover { color: var(--color-text); }
 .topbar__theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.topbar-offline {
+  background: var(--color-blocked-bg);
+  color: var(--color-blocked);
+  text-align: center;
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--color-blocked);
+}

@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react'
 import './ChatComposer.css'
 
 const MAX_LEN = 10_000
@@ -7,12 +7,14 @@ const WARN_LEN = 9_500
 interface Props {
   onSubmit: (text: string) => void
   disabled?: boolean
+  composerRef?: RefObject<HTMLTextAreaElement | null>
 }
 
-export default function ChatComposer({ onSubmit, disabled = false }: Props) {
+export default function ChatComposer({ onSubmit, disabled = false, composerRef }: Props) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const internalRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef = composerRef ?? internalRef
 
   function resize() {
     const el = textareaRef.current
@@ -73,7 +75,7 @@ export default function ChatComposer({ onSubmit, disabled = false }: Props) {
       <div className="composer__box">
         <textarea
           ref={textareaRef}
-          className="composer__textarea"
+          className={`composer__textarea${error ? ' composer__textarea--invalid' : ''}`}
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

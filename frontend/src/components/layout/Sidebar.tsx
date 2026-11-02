@@ -2,7 +2,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../../store/sessionStore'
 import './Sidebar.css'
 
-export default function Sidebar() {
+interface Props {
+  onClose?: () => void
+}
+
+export default function Sidebar({ onClose }: Props) {
   const { messages, sessionId, resetSession } = useSessionStore()
   const navigate = useNavigate()
 
@@ -14,6 +18,7 @@ export default function Sidebar() {
 
   function handleNewAnalysis() {
     navigate('/')
+    onClose?.()
   }
 
   function handleClearSession() {
@@ -33,6 +38,11 @@ export default function Sidebar() {
         >
           <span aria-hidden="true">+</span> New analysis
         </button>
+        {onClose && (
+          <button className="sidebar__close-btn" onClick={onClose} aria-label="Close navigation">
+            ✕
+          </button>
+        )}
       </div>
 
       <nav className="sidebar__history" aria-label="Recent analyses">
@@ -58,7 +68,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar__footer">
-        <Link to="/trend" className="sidebar__trend-link">
+        <Link to="/trend" className="sidebar__trend-link" onClick={onClose}>
           Session trend →
         </Link>
         <div className="sidebar__session-chip">

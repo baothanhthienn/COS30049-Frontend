@@ -14,9 +14,10 @@ const EXAMPLE_PROMPTS = [
 interface Props {
   messages: ChatMessage[]
   onExampleClick: (text: string) => void
+  onRetry: (text: string) => void
 }
 
-export default function ChatFeed({ messages, onExampleClick }: Props) {
+export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -82,6 +83,16 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
             {assistant?.error && (
               <div className="chat-feed__error" role="alert">
                 <span className="chat-feed__error-msg">{assistant.error}</span>
+                {assistant.referenceId && (
+                  <p className="chat-feed__error-ref">Ref: {assistant.referenceId}</p>
+                )}
+                <button
+                  className="chat-feed__retry-btn"
+                  onClick={() => onRetry(user.text)}
+                  aria-label="Retry this prompt"
+                >
+                  ↺ Retry
+                </button>
               </div>
             )}
           </div>

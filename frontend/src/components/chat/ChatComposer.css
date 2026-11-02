@@ -36,6 +36,12 @@
 .composer__textarea::placeholder {
   color: var(--color-text-subtle);
 }
+.composer__textarea--invalid {
+  color: var(--color-blocked);
+}
+.composer__box:has(.composer__textarea--invalid) {
+  border-color: var(--color-blocked);
+}
 
 .composer__footer {
   display: flex;
@@ -57,7 +63,7 @@
   height: 32px;
   border-radius: var(--radius-full);
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-fg);
   font-size: 1rem;
   line-height: 1;
   display: flex;

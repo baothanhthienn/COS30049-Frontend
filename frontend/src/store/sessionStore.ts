@@ -3,10 +3,11 @@ import { v4 as uuidv4 } from 'uuid'
 import type { ClassifyResponse } from '../types/api'
 
 const SESSION_KEY = 'pid_session_id'
+const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function getOrCreateSessionId(): string {
   let id = localStorage.getItem(SESSION_KEY)
-  if (!id) {
+  if (!id || !UUID_V4_RE.test(id)) {
     id = uuidv4()
     localStorage.setItem(SESSION_KEY, id)
   }
@@ -19,6 +20,7 @@ export interface ChatMessage {
   text: string
   result?: ClassifyResponse
   error?: string
+  referenceId?: string
   createdAt: Date
 }
 
@@ -28,7 +30,7 @@ interface SessionState {
   theme: 'dark' | 'light'
   addUserMessage: (text: string) => string
   addAssistantResult: (userMsgId: string, result: ClassifyResponse) => void
-  addAssistantError: (userMsgId: string, error: string) => void
+  addAssistantError: (userMsgId: string, error: string, referenceId?: string) => void
   clearMessages: () => void
   resetSession: () => void
   toggleTheme: () => void
@@ -60,10 +62,13 @@ export const useSessionStore = create<SessionState>((set) => ({
     }))
   },
 
-  addAssistantError: (_userMsgId, error) => {
+  addAssistantError: (_userMsgId, error, referenceId) => {
     const id = uuidv4()
     set((s) => ({
-      messages: [...s.messages, { id, role: 'assistant', text: '', error, createdAt: new Date() }],
+      messages: [
+        ...s.messages,
+        { id, role: 'assistant', text: '', error, referenceId, createdAt: new Date() },
+      ],
     }))
   },
 

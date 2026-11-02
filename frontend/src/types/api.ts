@@ -1,3 +1,8 @@
+export interface ClassifyRequest {
+  text: string
+  session_id: string
+}
+
 export type AttackFamily =
   | 'instruction_override'
   | 'role_play_jailbreak'

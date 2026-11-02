@@ -1,24 +1,40 @@
 import axios from 'axios'
-import type { ClassifyResponse, TrendResponse, HistoryResponse } from '../types/api'
+import type { ClassifyRequest, ClassifyResponse, TrendResponse, HistoryResponse } from '../types/api'
+
+export class ApiError extends Error {
+  code: string
+  referenceId: string
+  status: number
+
+  constructor(message: string, code: string, referenceId: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+    this.referenceId = referenceId
+    this.status = status
+  }
+}
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
-  timeout: 30_000,
+  timeout: 10_000,
 })
 
 http.interceptors.response.use(
   (res) => res,
   (err) => {
-    const message = err.response?.data?.error?.message ?? err.message
-    return Promise.reject(new Error(message))
+    const errBody = err.response?.data?.error
+    const message = errBody?.message ?? err.message
+    const code = errBody?.code ?? 'UNKNOWN'
+    const referenceId = errBody?.reference_id ?? ''
+    const status = err.response?.status ?? 0
+    return Promise.reject(new ApiError(message, code, referenceId, status))
   },
 )
 
 export async function classify(text: string, sessionId: string): Promise<ClassifyResponse> {
-  const { data } = await http.post<ClassifyResponse>('/api/classify', {
-    text,
-    session_id: sessionId,
-  })
+  const body: ClassifyRequest = { text, session_id: sessionId }
+  const { data } = await http.post<ClassifyResponse>('/api/classify', body)
   return data
 }
 
@@ -40,4 +56,9 @@ export async function fetchHistory(
 
 export async function deleteSession(sessionId: string): Promise<void> {
   await http.delete(`/api/sessions/${sessionId}`)
+}
+
+export async function getHealth(): Promise<{ status: string }> {
+  const { data } = await http.get<{ status: string }>('/api/health')
+  return data
 }

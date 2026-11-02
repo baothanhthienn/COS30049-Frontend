@@ -14,8 +14,21 @@
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  background: var(--span-highlight-bg);
+  transition: opacity 0.15s;
 }
 .span-token:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+
+.span-token--w1 { border-bottom: 1px solid var(--span-highlight-border); }
+.span-token--w2 { border-bottom: 2px solid var(--span-highlight-border); }
+.span-token--w3 { border-bottom: 2px solid var(--span-highlight-border); font-weight: 500; }
+
+.span-token--dim {
+  background: transparent;
+  border-bottom-color: transparent;
+  opacity: 0.35;
 }

@@ -1,0 +1,11 @@
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-page > .chat-feed {
+  flex: 1;
+  overflow-y: auto;
+}

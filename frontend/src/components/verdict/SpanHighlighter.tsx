@@ -1,14 +1,11 @@
 import type { TriggerSpan, AttackFamily } from '../../types/api'
 import './SpanHighlighter.css'
 
-const FAM_VAR: Record<AttackFamily, string> = {
-  instruction_override: 'var(--fam-instruction_override)',
-  role_play_jailbreak: 'var(--fam-role_play_jailbreak)',
-  delimiter_escape: 'var(--fam-delimiter_escape)',
-  encoding_obfuscation: 'var(--fam-encoding_obfuscation)',
-  context_exfiltration: 'var(--fam-context_exfiltration)',
-  indirect_injection: 'var(--fam-indirect_injection)',
-  benign: 'var(--color-benign)',
+
+const WEIGHT_CLASS: Record<number, string> = {
+  1: 'span-token--w1',
+  2: 'span-token--w2',
+  3: 'span-token--w3',
 }
 
 interface Props {
@@ -39,18 +36,14 @@ export default function SpanHighlighter({ text, spans, activeFamily, onSpanClick
       {segments.map((seg, i) => {
         if (!seg.span) return <span key={i}>{seg.text}</span>
         const isActive = activeFamily === null || seg.span.family === activeFamily
-        const color = FAM_VAR[seg.span.family]
+        const weight = Math.min(Math.max(Math.round(seg.span.weight * 3), 1), 3)
+        const wClass = WEIGHT_CLASS[weight] ?? 'span-token--w1'
         return (
           <button
             key={i}
-            className="span-token"
-            style={{
-              background: isActive ? color + '33' : 'transparent',
-              borderBottom: `2px solid ${isActive ? color : 'transparent'}`,
-              color: isActive ? color : 'var(--color-text-subtle)',
-              transition: 'all 0.15s',
-            }}
+            className={`span-token ${wClass} ${isActive ? '' : 'span-token--dim'}`}
             aria-label={`Trigger: ${seg.text} (${seg.span.family.replace(/_/g, ' ')})`}
+            aria-pressed={activeFamily === seg.span.family}
             onClick={() => onSpanClick(seg.span!.family)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {

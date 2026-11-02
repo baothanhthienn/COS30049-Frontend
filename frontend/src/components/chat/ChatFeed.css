@@ -119,3 +119,27 @@
   font-size: var(--text-sm);
   color: var(--color-blocked);
 }
+
+.chat-feed__error-ref {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  margin-top: var(--space-1);
+}
+
+.chat-feed__retry-btn {
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-blocked);
+  font-size: var(--text-xs);
+  color: var(--color-blocked);
+  transition: background 0.15s;
+}
+.chat-feed__retry-btn:hover {
+  background: var(--color-blocked-bg);
+}
+.chat-feed__retry-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
