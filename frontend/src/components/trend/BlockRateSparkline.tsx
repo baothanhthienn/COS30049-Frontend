@@ -66,7 +66,7 @@ export default function BlockRateSparkline({ points }: Props) {
               fontSize: '0.75rem',
               color: 'var(--color-text)',
             }}
-            formatter={(v: number) => [`${v}%`, 'Block rate']}
+            formatter={(v) => [`${v}%`, 'Block rate']}
           />
           <Area
             type="monotone"

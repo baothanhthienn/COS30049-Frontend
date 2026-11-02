@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
+import type { ChatMessage } from '../store/sessionStore'
 import { fetchTrend, ApiError } from '../api/client'
 import type { TrendPoint, AttackFamily } from '../types/api'
 import { FAMILY_META } from '../components/trend/familyMeta'
@@ -11,7 +12,7 @@ import './TrendPage.css'
 
 const ALL_FAMILIES = Object.keys(FAMILY_META) as AttackFamily[]
 
-function buildLocalPoints(messages: ReturnType<typeof useSessionStore>['messages']): TrendPoint[] {
+function buildLocalPoints(messages: ChatMessage[]): TrendPoint[] {
   return messages
     .filter((m) => m.role === 'assistant' && m.result)
     .map((m) => ({
