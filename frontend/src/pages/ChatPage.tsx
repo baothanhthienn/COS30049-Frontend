@@ -86,7 +86,7 @@ export default function ChatPage() {
 
   return (
     <div className="chat-page">
-      <ChatFeed messages={messages} onExampleClick={handleExampleClick} onRetry={runClassify} />
+      <ChatFeed messages={messages} onExampleClick={handleExampleClick} />
       <ChatComposer onSubmit={runClassify} disabled={isLoading} composerRef={composerRef} />
     </div>
   )

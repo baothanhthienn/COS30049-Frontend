@@ -15,10 +15,9 @@ const EXAMPLE_PROMPTS = [
 interface Props {
   messages: ChatMessage[]
   onExampleClick: (text: string) => void
-  onRetry: (text: string) => void
 }
 
-export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
+export default function ChatFeed({ messages, onExampleClick }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -97,7 +96,6 @@ export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
                 <Toast
                   message={assistant.referenceId ? `${assistant.error} (Ref: ${assistant.referenceId})` : assistant.error}
                   duration={0}
-                  onClose={() => onRetry(user.text)}
                 />
               </div>
             )}

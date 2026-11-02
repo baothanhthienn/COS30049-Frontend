@@ -1,9 +1,7 @@
 .chat-feed {
   display: flex;
   flex-direction: column;
-  padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-6)) 0;
-  max-width: 760px;
-  margin: 0 auto;
+  padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-8)) 0;
   width: 100%;
   min-height: 100%;
 }
