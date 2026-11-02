@@ -44,6 +44,7 @@
 
 .timeline-tooltip__time {
   color: var(--color-text-subtle);
+  font-family: var(--font-sf-pro);
   margin-top: var(--space-1);
 }
 

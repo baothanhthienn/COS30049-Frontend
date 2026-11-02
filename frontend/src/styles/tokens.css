@@ -42,8 +42,9 @@
   --span-highlight-border: var(--color-blocked);
 
  
-  --font-ui:   ui-sans-serif, -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-ui:      ui-sans-serif, -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
+  --font-mono:    ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sf-pro:  "SF Pro Text", "SF Pro Display", -apple-system, ui-sans-serif, "Segoe UI", system-ui, sans-serif;
   --text-xs:   0.75rem;
   --text-sm:   0.8125rem;
   --text-base: 0.9375rem;

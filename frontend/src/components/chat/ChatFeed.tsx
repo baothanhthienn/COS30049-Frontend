@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ChatMessage } from '../../store/sessionStore'
 import AssistantResponse from './AssistantResponse'
+import Toast from '../ui/Toast'
 import './ChatFeed.css'
 
 const EXAMPLE_PROMPTS = [
@@ -92,18 +93,12 @@ export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
               <AssistantResponse result={assistant.result} userText={user.text} />
             )}
             {assistant?.error && (
-              <div className="chat-feed__error" role="alert">
-                <span className="chat-feed__error-msg">{assistant.error}</span>
-                {assistant.referenceId && (
-                  <p className="chat-feed__error-ref">Ref: {assistant.referenceId}</p>
-                )}
-                <button
-                  className="chat-feed__retry-btn"
-                  onClick={() => onRetry(user.text)}
-                  aria-label="Retry this prompt"
-                >
-                  ↺ Retry
-                </button>
+              <div className="chat-feed__error-wrap">
+                <Toast
+                  message={assistant.referenceId ? `${assistant.error} (Ref: ${assistant.referenceId})` : assistant.error}
+                  duration={0}
+                  onClose={() => onRetry(user.text)}
+                />
               </div>
             )}
           </div>

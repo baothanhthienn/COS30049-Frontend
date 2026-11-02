@@ -28,6 +28,6 @@
 .asst-response__meta {
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
-  font-family: var(--font-mono);
+  font-family: var(--font-sf-pro);
   margin-top: var(--space-2);
 }
