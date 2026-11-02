@@ -61,7 +61,11 @@ export default function ChatFeed({ messages, onExampleClick, onRetry }: Props) {
   return (
     <div className="chat-feed" role="log" aria-label="Analysis history" aria-live="polite">
       {pairs.map(({ user, assistant }) => (
-        <div key={user.id} className="chat-feed__pair">
+        <div
+          key={user.id}
+          id={assistant?.result ? `msg-${assistant.result.id}` : undefined}
+          className="chat-feed__pair"
+        >
           <div className="chat-feed__user-bubble">
             <p className="chat-feed__user-text">{user.text}</p>
             <p className="chat-feed__user-meta">

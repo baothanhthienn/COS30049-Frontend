@@ -1,0 +1,46 @@
+.fam-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.fam-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--fam-chip-border);
+  background: var(--fam-chip-bg);
+  color: var(--fam-chip-text);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.fam-chip:hover {
+  border-color: var(--chip-color, var(--color-accent));
+  color: var(--color-text);
+}
+.fam-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fam-chip--active {
+  border-color: var(--chip-color, var(--color-accent));
+  background: color-mix(in srgb, var(--chip-color, var(--color-accent)) 12%, transparent);
+  color: var(--color-text);
+}
+
+.fam-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--chip-color, var(--color-text-muted));
+  flex-shrink: 0;
+}
+
+.fam-chip__label {
+  white-space: nowrap;
+}
+
+.fam-chip--all {
+  border-style: dashed;
+}

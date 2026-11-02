@@ -1,0 +1,107 @@
+.trend-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.trend-page__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.trend-page__title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.trend-page__source {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+}
+
+.trend-page__error {
+  background: var(--color-blocked-bg);
+  color: var(--color-blocked);
+  border: 1px solid var(--color-blocked);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+/* Stats row */
+.trend-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.trend-stat {
+  background: var(--color-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.trend-stat__value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.trend-stat__value--family {
+  font-size: var(--text-sm);
+}
+
+.trend-stat__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.trend-stat--blocked .trend-stat__value { color: var(--color-blocked); }
+.trend-stat--benign  .trend-stat__value { color: var(--color-benign); }
+
+/* Chart */
+.trend-page__chart-wrap {
+  background: var(--color-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-3);
+}
+
+.trend-page__loading {
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.trend-page__hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .trend-page {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+  .trend-stat {
+    min-width: 70px;
+    padding: var(--space-2) var(--space-3);
+  }
+}

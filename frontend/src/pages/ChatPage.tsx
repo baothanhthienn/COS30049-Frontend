@@ -1,4 +1,5 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { classify, ApiError } from '../api/client'
 import ChatFeed from '../components/chat/ChatFeed'
@@ -9,6 +10,20 @@ export default function ChatPage() {
   const { messages, sessionId, addUserMessage, addAssistantResult, addAssistantError } =
     useSessionStore()
   const composerRef = useRef<HTMLTextAreaElement>(null)
+  const location = useLocation()
+
+  // Scroll to a specific message when navigated from TrendPage
+  useEffect(() => {
+    const scrollToId = (location.state as { scrollToId?: string } | null)?.scrollToId
+    if (!scrollToId) return
+    const el = document.getElementById(`msg-${scrollToId}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.classList.add('chat-message--highlight')
+      const t = setTimeout(() => el.classList.remove('chat-message--highlight'), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [location.state])
 
   const isLoading =
     messages.length > 0 &&
