@@ -130,6 +130,21 @@ Open `http://localhost:5173`.
 
 ---
 
+## Security Hygiene (§2.3)
+
+Four measures required before §2.7/§2.8 work is counted:
+
+| # | Measure | Where enforced |
+|---|---------|----------------|
+| 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` banned via ESLint `no-restricted-syntax` rule; zero hits in source (`grep` clean on every push) | `frontend/eslint.config.js` · CI `frontend` job |
+| 2 | **Input size cap** — Pydantic `text: str = Field(max_length=10_000)` on `POST /api/classify`; FastAPI rejects oversized bodies before the ML pipeline runs | `backend/app/schemas/classify.py` |
+| 3 | **CORS allowlist** — `allow_origins` is an explicit list (`["https://<vercel-url>", "http://localhost:5173"]`); wildcard `*` is never set | `backend/app/main.py` |
+| 4 | **Secrets in env only** — no credentials in source; `gitleaks` runs on every push and PR via GitHub Actions; `.env` is gitignored | `.github/workflows/ci.yml` · `.gitignore` |
+
+CI pipeline: `.github/workflows/ci.yml` runs gitleaks + ESLint (including the `dangerouslySetInnerHTML` ban) + TypeScript type-check + Vite build on every push and PR.
+
+---
+
 ## Dependencies
 
 - Backend: see `backend/requirements.txt`
