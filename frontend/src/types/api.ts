@@ -49,12 +49,18 @@ export interface TrendPoint {
   attack_family: AttackFamily
 }
 
+export interface FamilyCount {
+  family: AttackFamily
+  count: number
+}
+
 export interface TrendSummary {
   total: number
   blocked: number
   benign: number
   top_family: AttackFamily | null
   block_rate_rolling: number
+  family_breakdown: FamilyCount[]
 }
 
 export interface TrendResponse {
