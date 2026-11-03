@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
-import { classify, ApiError } from '../api/client'
+import { classify, fetchHistory, ApiError } from '../api/client'
 import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
 import ChatComposer from '../components/chat/ChatComposer'
 import './ChatPage.css'
 
 export default function ChatPage() {
-  const { messages, sessionId, addUserMessage, addAssistantResult, addAssistantError, resetSession } =
+  const { messages, sessionId, historyLoaded, addUserMessage, addAssistantResult, addAssistantError, loadHistory, resetSession } =
     useSessionStore()
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const location = useLocation()
   const [_focusedIdx, setFocusedIdx] = useState<number | null>(null)
+
+  // Load chat history from the backend on first mount
+  useEffect(() => {
+    if (historyLoaded) return
+    fetchHistory(sessionId, 50, 0)
+      .then((data) => { if (data.items.length > 0) loadHistory(data) })
+      .catch(() => { /* silently ignore — new session or backend unavailable */ })
+  }, [sessionId, historyLoaded, loadHistory])
 
   // Scroll to a specific message when navigated from TrendPage
   useEffect(() => {
