@@ -17,7 +17,9 @@
 
 .app-shell__content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Mobile bar and drawer — hidden on desktop */

@@ -7,25 +7,19 @@ interface Props {
 }
 
 export default function Sidebar({ onClose }: Props) {
-  const { messages, sessionId, resetSession } = useSessionStore()
+  const { sessions, activeSessionId, newSession, switchToSession } = useSessionStore()
   const navigate = useNavigate()
 
-  const history = messages
-    .filter((m) => m.role === 'user')
-    .slice()
-    .reverse()
-    .slice(0, 20)
-
   function handleNewAnalysis() {
+    newSession()
     navigate('/')
     onClose?.()
   }
 
-  function handleClearSession() {
-    if (window.confirm('Clear session and all history? This cannot be undone.')) {
-      resetSession()
-      navigate('/')
-    }
+  function handleSwitchSession(id: string) {
+    switchToSession(id)
+    navigate('/')
+    onClose?.()
   }
 
   return (
@@ -46,25 +40,23 @@ export default function Sidebar({ onClose }: Props) {
       </div>
 
       <nav className="sidebar__history" aria-label="Recent analyses">
-        {history.length === 0 && (
+        {sessions.length === 0 && (
           <p className="sidebar__empty">No analyses yet</p>
         )}
-        {history.map((msg) => {
-          const result = messages.find(
-            (m) => m.role === 'assistant' && m.createdAt > msg.createdAt,
-          )?.result
-          return (
-            <div key={msg.id} className="sidebar__item">
-              {result && (
-                <span
-                  className={`sidebar__dot sidebar__dot--${result.verdict.toLowerCase()}`}
-                  aria-hidden="true"
-                />
-              )}
-              <span className="sidebar__preview">{msg.text.slice(0, 30)}</span>
-            </div>
-          )
-        })}
+        {sessions.map((session) => (
+          <button
+            key={session.id}
+            className={`sidebar__item${session.id === activeSessionId ? ' sidebar__item--active' : ''}`}
+            onClick={() => handleSwitchSession(session.id)}
+            title={session.preview}
+          >
+            <span
+              className={`sidebar__dot sidebar__dot--${(session.verdict ?? 'none').toLowerCase()}`}
+              aria-hidden="true"
+            />
+            <span className="sidebar__preview">{session.preview || 'New session'}</span>
+          </button>
+        ))}
       </nav>
 
       <div className="sidebar__footer">
@@ -72,12 +64,9 @@ export default function Sidebar({ onClose }: Props) {
           Session trend →
         </Link>
         <div className="sidebar__session-chip">
-          <span className="sidebar__session-id" title={sessionId}>
-            {sessionId.slice(0, 8)}…
+          <span className="sidebar__session-id" title={activeSessionId}>
+            {activeSessionId.slice(0, 8)}…
           </span>
-          <button className="sidebar__clear-btn" onClick={handleClearSession}>
-            Clear session
-          </button>
         </div>
       </div>
     </aside>

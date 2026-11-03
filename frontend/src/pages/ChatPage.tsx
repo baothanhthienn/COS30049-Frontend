@@ -8,7 +8,7 @@ import ChatComposer from '../components/chat/ChatComposer'
 import './ChatPage.css'
 
 export default function ChatPage() {
-  const { messages, sessionId, historyLoaded, addUserMessage, addAssistantResult, addAssistantError, loadHistory, resetSession } =
+  const { messages, sessionId, historyLoaded, addUserMessage, addAssistantResult, addAssistantError, loadHistory, newSession } =
     useSessionStore()
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const location = useLocation()
@@ -87,7 +87,7 @@ export default function ChatPage() {
 
   useShortcuts({
     focusComposer: () => composerRef.current?.focus(),
-    newAnalysis: () => { resetSession(); composerRef.current?.focus() },
+    newAnalysis: () => { newSession(); composerRef.current?.focus() },
     prevMessage: () => scrollToPair(-1),
     nextMessage: () => scrollToPair(1),
   })

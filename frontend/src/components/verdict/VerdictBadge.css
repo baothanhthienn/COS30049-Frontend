@@ -12,8 +12,8 @@
   border-radius: var(--radius-sm);
 }
 .verdict-badge--blocked {
-  background: var(--color-blocked-bg);
-  color: var(--color-blocked);
+  background: #e5534b;
+  color: #ffffff;
 }
 .verdict-badge--allow {
   background: rgba(16, 163, 127, 0.1);
