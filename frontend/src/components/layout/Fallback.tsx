@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import './Fallback.css'
 
 interface Props { children: ReactNode }
 interface State { error: Error | null }
@@ -17,17 +18,31 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: '2rem', color: 'var(--color-blocked)' }}>
-          <strong>Something went wrong.</strong>
-          <pre style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-            {this.state.error.message}
-          </pre>
-          <button
-            onClick={() => this.setState({ error: null })}
-            style={{ marginTop: '1rem', color: 'var(--color-accent)', textDecoration: 'underline' }}
-          >
-            Try again
-          </button>
+        <div className="eb-wrap">
+          <div className="eb-card">
+            <div className="eb-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L2 20h20L12 2z"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinejoin="round"
+                />
+                <path d="M12 9v5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                <circle cx="12" cy="17" r="0.75" fill="currentColor" />
+              </svg>
+            </div>
+            <div className="eb-body">
+              <p className="eb-title">Something went wrong</p>
+              <p className="eb-detail">{this.state.error.message}</p>
+            </div>
+            <button
+              className="eb-reload"
+              onClick={() => window.location.reload()}
+            >
+              Reload page
+            </button>
+          </div>
         </div>
       )
     }

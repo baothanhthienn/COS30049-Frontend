@@ -23,12 +23,12 @@ export default function AssistantResponse({ result, userText }: Props) {
     <div className={`asst-response asst-response--${isBlocked ? 'blocked' : 'allow'}`}>
       <VerdictBadge verdict={result.verdict} confidence={result.confidence} />
 
-      {isBlocked && result.trigger_spans.length > 0 && (
+      {isBlocked && (result.trigger_spans ?? []).length > 0 && (
         <>
           <p className="asst-response__section-head">Why this was flagged</p>
           <SpanHighlighter
             text={userText}
-            spans={result.trigger_spans}
+            spans={result.trigger_spans ?? []}
             activeFamily={activeFamily}
             onSpanClick={handleFamilyClick}
           />
