@@ -17,10 +17,10 @@ export default function AssistantResponse({ result, userText }: Props) {
     setActiveFamily((prev) => (prev === fam ? null : fam))
   }
 
-  const isBlocked = result.verdict === 'BLOCKED'
+  const isBlocked = result.verdict === 'BLOCKED' || result.verdict === 'BLOCK'
 
   return (
-    <div className={`asst-response asst-response--${result.verdict.toLowerCase()}`}>
+    <div className={`asst-response asst-response--${isBlocked ? 'blocked' : 'allow'}`}>
       <VerdictBadge verdict={result.verdict} confidence={result.confidence} />
 
       {isBlocked && result.trigger_spans.length > 0 && (

@@ -12,7 +12,7 @@ export type AttackFamily =
   | 'indirect_injection'
   | 'benign'
 
-export type Verdict = 'BLOCKED' | 'ALLOW'
+export type Verdict = 'BLOCKED' | 'BLOCK' | 'ALLOW'
 
 export interface TriggerSpan {
   start: number

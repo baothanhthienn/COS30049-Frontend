@@ -10,16 +10,17 @@ const CELLS = 10
 
 export default function VerdictBadge({ verdict, confidence }: Props) {
   const filled = Math.round(confidence * CELLS)
-  const isBlocked = verdict === 'BLOCKED'
-  const color = isBlocked ? 'var(--color-blocked)' : 'var(--color-benign)'
+  const isBlocked = verdict === 'BLOCKED' || verdict === 'BLOCK'
+  const color = isBlocked ? '#e5534b' : 'var(--color-benign)'
+  const label = isBlocked ? 'BLOCKED' : 'ALLOW'
 
   return (
     <div className="verdict-badge-row">
       <span
-        className={`verdict-badge verdict-badge--${verdict.toLowerCase()}`}
-        aria-label={`Verdict: ${verdict}`}
+        className={`verdict-badge verdict-badge--${isBlocked ? 'blocked' : 'allow'}`}
+        aria-label={`Verdict: ${label}`}
       >
-        {verdict}
+        {label}
       </span>
       <span className="verdict-conf">
         <span className="verdict-conf__num">{(confidence * 100).toFixed(0)}%</span>

@@ -25,12 +25,12 @@ export interface SessionMeta {
 
 interface SessionState {
   activeSessionId: string
-  sessions: SessionMeta[]        // ordered newest-first
-  messages: ChatMessage[]        // messages for the active session
+  sessions: SessionMeta[]       
+  messages: ChatMessage[]      
   historyLoaded: boolean
   theme: 'dark' | 'light'
 
-  // kept for backwards-compat with ChatPage / API calls
+  
   sessionId: string
 
   addUserMessage:     (text: string) => string
@@ -87,7 +87,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set((s) => ({
       messages: [...s.messages, { id, role: 'user', text, createdAt: new Date() }],
     }))
-    // Update session preview if this is the first message
+    
     const { activeSessionId, sessions } = get()
     const existing = sessions.find((s) => s.id === activeSessionId)
     if (!existing) {
@@ -111,10 +111,11 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         { id, role: 'assistant', text: '', result, createdAt: new Date() },
       ],
     }))
-    // Update verdict on session meta
+    
     const { activeSessionId, sessions } = get()
-    const next = sessions.map((s) =>
-      s.id === activeSessionId ? { ...s, verdict: result.verdict } : s,
+    const normalised: 'BLOCKED' | 'ALLOW' = (result.verdict === 'BLOCK' || result.verdict === 'BLOCKED') ? 'BLOCKED' : 'ALLOW'
+    const next: SessionMeta[] = sessions.map((s) =>
+      s.id === activeSessionId ? { ...s, verdict: normalised } : s,
     )
     saveSessions(next)
     set({ sessions: next })
