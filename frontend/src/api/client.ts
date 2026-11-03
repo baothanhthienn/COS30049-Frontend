@@ -18,6 +18,9 @@ export class ApiError extends Error {
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10_000,
+  headers: {
+    ...(import.meta.env.VITE_API_KEY ? { 'X-API-Key': import.meta.env.VITE_API_KEY } : {}),
+  },
 })
 
 http.interceptors.response.use(
