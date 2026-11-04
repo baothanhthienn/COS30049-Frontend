@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react'
+import React, { useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { extractText, ACCEPT } from '../../utils/fileExtract'
 import './ChatComposer.css'
 
@@ -87,7 +87,7 @@ export default function ChatComposer({ onSubmit, disabled = false, composerRef }
     }
   }
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     submit()
   }
