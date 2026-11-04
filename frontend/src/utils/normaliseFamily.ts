@@ -11,7 +11,10 @@ const ORDERED_FAMILIES: AttackFamily[] = [
 
 const FAMILY_ALIASES: Record<string, AttackFamily> = {
   encoding_evasion:   'encoding_obfuscation',
-  social_engineering: 'instruction_override',
+  role_hijack:        'role_play_jailbreak',
+  social_engineering: 'indirect_injection',
+  data_exfiltration:  'context_exfiltration',
+  filter_bypass:      'delimiter_escape',
   prompt_injection:   'instruction_override',
 }
 
