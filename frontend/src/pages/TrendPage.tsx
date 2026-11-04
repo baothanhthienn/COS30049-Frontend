@@ -176,7 +176,7 @@ export default function TrendPage() {
                     {count}
                   </span>
                   <span className={`trend-rank-row__rate${count > 0 ? ' trend-rank-row__rate--active' : ''}`}>
-                    {count > 0 ? `${rate}%` : '—'}
+                    {`${rate}%`}
                   </span>
                 </div>
               )

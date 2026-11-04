@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import type { ClassifyResponse, HistoryResponse } from '../types/api'
 import { listSessions, upsertSession, patchSession, deleteSession } from '../api/client'
+import { normaliseFamily } from '../utils/normaliseFamily'
 
 const SESSION_KEY = 'pid_session_id'
 const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -156,7 +157,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
           id:             item.id,
           verdict:        item.verdict,
           confidence:     item.confidence,
-          attack_family:  item.attack_family,
+          attack_family:  normaliseFamily(item.attack_family),
           family_scores:  {} as ClassifyResponse['family_scores'],
           trigger_spans:  [],
           model_version:  '',
