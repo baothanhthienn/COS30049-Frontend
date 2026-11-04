@@ -19,37 +19,45 @@ A full-stack web app that classifies free-text input as benign or a prompt injec
 
 ### Backend
 
+The backend lives in the **Assignment 2** repository (separate folder from this one).
+
 ```bash
 # macOS
 brew install postgresql@15
-cd backend
+# Create the database (one-time)
+createdb prompt_injection_db
+
+cd "Assignment 2"
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # fill in DATABASE_URL
+cp .env.example .env          # fill in DATABASE_URL and API_KEY
 alembic upgrade head           # create tables
-uvicorn app.main:app --reload
+uvicorn api.main:app --reload
 ```
 
 ```bash
 # Linux
 sudo apt install postgresql-15
-cd backend
+sudo -u postgres createdb prompt_injection_db
+
+cd "Assignment 2"
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 alembic upgrade head
-uvicorn app.main:app --reload
+uvicorn api.main:app --reload
 ```
 
 ```powershell
 # Windows (PowerShell)
 # Install PostgreSQL from https://www.postgresql.org/download/windows/
-cd backend
+# Then create the database in psql: CREATE DATABASE prompt_injection_db;
+cd "Assignment 2"
 python -m venv .venv; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env          # fill in DATABASE_URL
+cp .env.example .env          # fill in DATABASE_URL and API_KEY
 alembic upgrade head
-uvicorn app.main:app --reload
+uvicorn api.main:app --reload
 ```
 
 API docs available at `http://localhost:8000/api/docs` once running.
@@ -59,7 +67,7 @@ API docs available at `http://localhost:8000/api/docs` once running.
 ```bash
 cd frontend
 npm install
-cp ../.env.example .env.local  # set VITE_API_BASE_URL=http://localhost:8000
+cp .env.example .env.local     # set VITE_API_BASE_URL and VITE_API_KEY
 npm run dev
 ```
 
@@ -111,22 +119,22 @@ Open `http://localhost:5173`.
 | XSS | ✗ | React escapes all user-controlled output; `dangerouslySetInnerHTML` is banned by lint rule |
 
 **Defences implemented (§2.7):**
-- **Denial of Service** (Advanced, 4 marks) — `asyncio.Semaphore` concurrency cap + `slowapi` rate limiting + Pydantic input size cap. See `backend/attacks/demo_dos.py`.
-- **SQL Injection** (Intermediate, 3 marks) — all queries via SQLAlchemy ORM / bound parameters; CI asserts zero raw f-string SQL. See `backend/attacks/demo_sqli.py`.
+- **Denial of Service** (Advanced, 4 marks) — `asyncio.Semaphore` concurrency cap + custom sliding-window rate limiter + Pydantic input size cap. See `attacks/demo_dos.py` in the backend.
+- **SQL Injection** (Intermediate, 3 marks) — all queries via SQLAlchemy ORM / bound parameters; no raw f-string SQL. See `attacks/demo_sqli.py` in the backend.
 
 **Advanced attack (§2.8):**
-- **Detection Evasion** — Unicode homoglyphs, zero-width chars, mixed scripts, NFKC-reversible forms. Before/after measurement with `NORMALISE=on/off`. Results: `backend/attacks/results/`.
+- **Detection Evasion** — Unicode homoglyphs (Cyrillic look-alikes), zero-width chars, mixed scripts. NFKC normalisation in `preprocessing.py` restores original characters before feature extraction. Before/after measurement: `attacks/measure_evasion.py` in the backend.
 
 ---
 
 ## Named Defences (§2.7)
 
-1. **Denial of Service** (Advanced) — `backend/app/core/security.py` + `backend/attacks/demo_dos.py`
-2. **SQL Injection** (Intermediate) — `backend/app/db/models.py` + `backend/attacks/demo_sqli.py`
+1. **Denial of Service** (Advanced) — `api/main.py` (rate-limit middleware + semaphore) + `attacks/demo_dos.py`
+2. **SQL Injection** (Intermediate) — `api/db/models.py` + `api/routers/sessions.py` (ORM only) + `attacks/demo_sqli.py`
 
 ## Named Advanced Attack (§2.8)
 
-**Detection Evasion** — `backend/attacks/measure_evasion.py` · results in `backend/attacks/results/`
+**Detection Evasion** — `attacks/measure_evasion.py` (in backend repo)
 
 ---
 
@@ -136,12 +144,10 @@ Four measures required before §2.7/§2.8 work is counted:
 
 | # | Measure | Where enforced |
 |---|---------|----------------|
-| 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` banned via ESLint `no-restricted-syntax` rule; zero hits in source (`grep` clean on every push) | `frontend/eslint.config.js` · CI `frontend` job |
-| 2 | **Input size cap** — Pydantic `text: str = Field(max_length=10_000)` on `POST /api/classify`; FastAPI rejects oversized bodies before the ML pipeline runs | `backend/app/schemas/classify.py` |
-| 3 | **CORS allowlist** — `allow_origins` is an explicit list (`["https://<vercel-url>", "http://localhost:5173"]`); wildcard `*` is never set | `backend/app/main.py` |
-| 4 | **Secrets in env only** — no credentials in source; `gitleaks` runs on every push and PR via GitHub Actions; `.env` is gitignored | `.github/workflows/ci.yml` · `.gitignore` |
-
-CI pipeline: `.github/workflows/ci.yml` runs gitleaks + ESLint (including the `dangerouslySetInnerHTML` ban) + TypeScript type-check + Vite build on every push and PR.
+| 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` is not used anywhere in the React source | `frontend/src/` (grep-verified) |
+| 2 | **Input size cap** — Pydantic `text: str = Field(max_length=10_000)` on `POST /api/classify`; `limit_body_size` middleware rejects bodies > 1 MB | `api/routers/classify.py` |
+| 3 | **CORS allowlist** — explicit allowlist: `cos-30049-frontend.vercel.app` + `localhost:5173`; wildcard `*` is never set | `api/main.py` + `api/core/errors.py` |
+| 4 | **Secrets in env only** — no credentials in source; `.env` files are gitignored; `.env.example` ships with placeholder values | `.env.example` · `.gitignore` |
 
 ---
 
