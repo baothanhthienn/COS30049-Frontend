@@ -15,7 +15,7 @@ function timeAgo(date: Date): string {
 }
 
 export default function Sidebar({ onClose }: Props) {
-  const { sessions, activeSessionId, sessionId, newSession, switchToSession, resetSession } =
+  const { sessions, activeSessionId, sessionId, newSession, switchToSession, removeSession } =
     useSessionStore()
   const navigate = useNavigate()
   const location = useLocation()
@@ -33,8 +33,8 @@ export default function Sidebar({ onClose }: Props) {
   }
 
   function handleClear() {
-    if (window.confirm('Clear session and all history? This cannot be undone.')) {
-      resetSession()
+    if (window.confirm('Remove this session from the sidebar? This cannot be undone.')) {
+      removeSession(activeSessionId)
       navigate('/')
       onClose?.()
     }

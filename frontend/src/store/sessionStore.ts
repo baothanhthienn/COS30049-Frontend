@@ -41,6 +41,7 @@ interface SessionState {
   switchToSession:    (id: string) => void
   clearMessages:      () => void
   resetSession:       () => void
+  removeSession:      (id: string) => void
   toggleTheme:        () => void
 }
 
@@ -177,6 +178,19 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const id = uuidv4()
     localStorage.setItem(SESSION_KEY, id)
     set({ activeSessionId: id, sessionId: id, messages: [], historyLoaded: false })
+  },
+
+  removeSession: (id) => {
+    const { sessions, activeSessionId } = get()
+    const next = sessions.filter((s) => s.id !== id)
+    saveSessions(next)
+    if (id === activeSessionId) {
+      const newId = uuidv4()
+      localStorage.setItem(SESSION_KEY, newId)
+      set({ sessions: next, activeSessionId: newId, sessionId: newId, messages: [], historyLoaded: false })
+    } else {
+      set({ sessions: next })
+    }
   },
 
   toggleTheme: () =>
