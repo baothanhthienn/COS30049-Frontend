@@ -1,87 +1,59 @@
-.trend-page {
-  max-width: 900px;
+.trend-main {
+  padding: var(--space-6);
+  overflow-y: auto;
+  height: 100%;
+}
+
+.trend-wrap {
+  max-width: 920px;
   margin: 0 auto;
-  padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-6));
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
 }
 
-.trend-page__header {
+/* ── Header ── */
+.trend-head {
   display: flex;
+  justify-content: space-between;
   align-items: baseline;
-  gap: var(--space-3);
-}
-
-.trend-page__title {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.trend-page__source {
-  font-size: var(--text-xs);
-  color: var(--color-text-subtle);
-  font-family: var(--font-mono);
-}
-
-.trend-page__error {
-  background: var(--color-blocked-bg);
-  color: var(--color-blocked);
-  border: 1px solid var(--color-blocked);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
-}
-
-/* Stats row */
-.trend-stats {
-  display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-.trend-stat {
-  background: var(--color-raised);
-  border: 1px solid var(--color-border);
+.trend-head__title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+}
+
+.trend-head__summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-head__summary b {
+  color: var(--color-text);
+}
+
+/* ── Error / empty / loading ── */
+.trend-error {
+  background: var(--color-blocked-bg);
+  color: var(--color-blocked);
+  border: 1px solid color-mix(in srgb, var(--color-blocked) 35%, transparent);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 80px;
-}
-
-.trend-stat__value {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text);
-  line-height: 1.1;
-}
-
-.trend-stat__value--family {
   font-size: var(--text-sm);
 }
 
-.trend-stat__label {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.trend-stat--blocked .trend-stat__value { color: var(--color-blocked); }
-.trend-stat--benign  .trend-stat__value { color: var(--color-benign); }
-
-/* Chart */
-.trend-page__chart-wrap {
-  background: var(--color-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4) var(--space-3);
-}
-
-.trend-page__loading {
-  min-height: 340px;
+.trend-loading,
+.trend-empty {
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,19 +61,127 @@
   font-size: var(--text-sm);
 }
 
-.trend-page__hint {
+/* ── Filter chips ── */
+.trend-filter-chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.trend-filter-chips__label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-right: var(--space-2);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+}
+
+.trend-chip {
+  padding: 4px var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  transition: color 0.1s, background 0.1s, border-color 0.1s;
+}
+
+.trend-chip:hover {
+  color: var(--color-text);
+}
+
+.trend-chip[aria-pressed="true"] {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-weight: 600;
+  border-color: var(--color-accent);
+}
+
+/* ── Rank table ── */
+.trend-rank-table {
+  background: var(--color-sidebar);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.trend-rank-table__head {
+  display: grid;
+  grid-template-columns: 32px 1fr 72px 100px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trend-rank-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 72px 100px;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  transition: background 0.1s, opacity 0.15s;
+}
+
+.trend-rank-row:last-child {
+  border-bottom: none;
+}
+
+.trend-rank-row:hover {
+  background: var(--color-raised);
+}
+
+.trend-rank-row__rank {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-rank-row__name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trend-rank-row__family {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+}
+
+.trend-rank-row__sub {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+}
+
+.trend-rank-row__count {
+  font-size: var(--text-base);
+  color: var(--color-text);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-rank-row__rate {
+  font-size: var(--text-sm);
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.trend-rank-row__rate--active {
+  color: var(--color-blocked);
+}
+
+/* ── Hint ── */
+.trend-hint {
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
   text-align: center;
-}
-
-@media (max-width: 480px) {
-  .trend-page {
-    padding: var(--space-4);
-    gap: var(--space-4);
-  }
-  .trend-stat {
-    min-width: 70px;
-    padding: var(--space-2) var(--space-3);
-  }
+  font-family: var(--font-sf-pro, ui-sans-serif, system-ui, sans-serif);
 }

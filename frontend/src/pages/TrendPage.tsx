@@ -5,12 +5,18 @@ import type { ChatMessage } from '../store/sessionStore'
 import { fetchTrend, ApiError } from '../api/client'
 import type { TrendPoint, AttackFamily } from '../types/api'
 import { FAMILY_META } from '../components/trend/familyMeta'
-import SessionTimeline from '../components/trend/SessionTimeline'
-import BlockRateSparkline from '../components/trend/BlockRateSparkline'
-import FamilyFilterChips from '../components/trend/FamilyFilterChips'
 import './TrendPage.css'
 
-const ALL_FAMILIES = Object.keys(FAMILY_META) as AttackFamily[]
+const ORDERED_FAMILIES: AttackFamily[] = [
+  'instruction_override',
+  'role_play_jailbreak',
+  'delimiter_escape',
+  'encoding_obfuscation',
+  'context_exfiltration',
+  'indirect_injection',
+]
+
+type Filter = 'all' | 'blocked' | AttackFamily
 
 function buildLocalPoints(messages: ChatMessage[]): TrendPoint[] {
   return messages
@@ -29,9 +35,9 @@ export default function TrendPage() {
   const navigate = useNavigate()
 
   const [remotePoints, setRemotePoints] = useState<TrendPoint[] | null>(null)
-  const [loading, setLoading] = useState(true) // starts true; set false when fetch settles
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeFilters, setActiveFilters] = useState<Set<AttackFamily>>(new Set(ALL_FAMILIES))
+  const [filter, setFilter] = useState<Filter>('all')
 
   useEffect(() => {
     let cancelled = false
@@ -61,92 +67,129 @@ export default function TrendPage() {
 
   const summary = useMemo(() => {
     const total = points.length
-    const blocked = points.filter((p) => p.verdict === 'BLOCKED').length
+    const blocked = points.filter(
+      (p) => p.verdict === 'BLOCKED' || p.verdict === 'BLOCK',
+    ).length
     const blockRate = total > 0 ? Math.round((blocked / total) * 100) : 0
     const familyCounts: Partial<Record<AttackFamily, number>> = {}
     for (const p of points) {
-      familyCounts[p.attack_family] = (familyCounts[p.attack_family] ?? 0) + 1
+      if (p.verdict === 'BLOCKED' || p.verdict === 'BLOCK') {
+        familyCounts[p.attack_family] = (familyCounts[p.attack_family] ?? 0) + 1
+      }
     }
-    const topFamily = (Object.entries(familyCounts) as [AttackFamily, number][])
-      .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-    return { total, blocked, blockRate, topFamily }
+    const topFamily =
+      (Object.entries(familyCounts) as [AttackFamily, number][])
+        .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+    return { total, blocked, blockRate, topFamily, familyCounts }
   }, [points])
 
+  const filteredPoints = useMemo(() => {
+    if (filter === 'all') return points
+    if (filter === 'blocked') return points.filter((p) => p.verdict === 'BLOCKED' || p.verdict === 'BLOCK')
+    return points.filter((p) => p.attack_family === filter)
+  }, [points, filter])
+
+  const rankedFamilies = useMemo(() => {
+    return ORDERED_FAMILIES.map((fam) => {
+      const count = summary.familyCounts[fam] ?? 0
+      const rate = summary.blocked > 0 ? Math.round((count / summary.blocked) * 100) : 0
+      return { fam, count, rate }
+    }).sort((a, b) => b.count - a.count)
+  }, [summary])
+
   function handlePointClick(point: TrendPoint) {
-    // Navigate to chat and let the browser scroll to the matching message pair
     navigate('/', { state: { scrollToId: point.id } })
   }
+  void handlePointClick // used conditionally below
+
+  const filterOptions: { key: Filter; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'blocked', label: 'Blocked only' },
+    ...ORDERED_FAMILIES.map((f) => ({ key: f as Filter, label: f })),
+  ]
 
   return (
-    <div className="trend-page">
-      <div className="trend-page__header">
-        <h1 className="trend-page__title">Session trend</h1>
-        {!loading && remotePoints && (
-          <span className="trend-page__source">Live data</span>
+    <div className="trend-main">
+      <div className="trend-wrap">
+        {/* Header */}
+        <div className="trend-head">
+          <h1 className="trend-head__title">This session's results over time</h1>
+          <div className="trend-head__summary">
+            <b>{summary.total}</b> submitted · <b>{summary.blocked}</b> blocked ·{' '}
+            <b>{summary.blockRate}%</b> block rate
+            {summary.topFamily && (
+              <> · top family <b>{summary.topFamily}</b></>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="trend-error" role="alert">{error}</div>
         )}
-      </div>
 
-      {error && (
-        <div className="trend-page__error" role="alert">{error}</div>
-      )}
-
-      {/* Summary stats */}
-      <div className="trend-stats" aria-label="Session summary">
-        <div className="trend-stat">
-          <span className="trend-stat__value">{summary.total}</span>
-          <span className="trend-stat__label">Total</span>
-        </div>
-        <div className="trend-stat trend-stat--blocked">
-          <span className="trend-stat__value">{summary.blocked}</span>
-          <span className="trend-stat__label">Blocked</span>
-        </div>
-        <div className="trend-stat trend-stat--benign">
-          <span className="trend-stat__value">{summary.total - summary.blocked}</span>
-          <span className="trend-stat__label">Benign</span>
-        </div>
-        <div className="trend-stat">
-          <span className="trend-stat__value">{summary.blockRate}%</span>
-          <span className="trend-stat__label">Block rate</span>
-        </div>
-        {summary.topFamily && (
-          <div className="trend-stat">
-            <span
-              className="trend-stat__value trend-stat__value--family"
-              style={{ color: FAMILY_META[summary.topFamily]?.color }}
+        {/* Filter chips */}
+        <div className="trend-filter-chips">
+          <span className="trend-filter-chips__label">Filter:</span>
+          {filterOptions.map(({ key, label }) => (
+            <button
+              key={key}
+              className="trend-chip"
+              aria-pressed={filter === key}
+              onClick={() => setFilter(key)}
             >
-              {FAMILY_META[summary.topFamily]?.label ?? summary.topFamily}
-            </span>
-            <span className="trend-stat__label">Top family</span>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Rank table */}
+        {loading ? (
+          <div className="trend-loading" aria-busy="true">Loading…</div>
+        ) : points.length === 0 ? (
+          <div className="trend-empty">No data yet — submit some prompts to see trends.</div>
+        ) : (
+          <div className="trend-rank-table">
+            <div className="trend-rank-table__head">
+              <span>#</span>
+              <span>Family</span>
+              <span>Blocked</span>
+              <span>% of blocks</span>
+            </div>
+            {rankedFamilies.map(({ fam, count, rate }, idx) => {
+              const dimmed = filter !== 'all' && filter !== 'blocked' && filter !== fam
+              return (
+                <div
+                  key={fam}
+                  className="trend-rank-row"
+                  style={dimmed ? { opacity: 0.35 } : undefined}
+                >
+                  <span className="trend-rank-row__rank">{idx + 1}</span>
+                  <span className="trend-rank-row__name">
+                    <span className="trend-rank-row__family">{fam}</span>
+                    <span className="trend-rank-row__sub">
+                      {count} block{count !== 1 ? 's' : ''} this session
+                    </span>
+                  </span>
+                  <span className="trend-rank-row__count"
+                    style={count === 0 ? { color: 'var(--color-text-subtle)' } : undefined}>
+                    {count}
+                  </span>
+                  <span className={`trend-rank-row__rate${count > 0 ? ' trend-rank-row__rate--active' : ''}`}>
+                    {count > 0 ? `${rate}%` : '—'}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         )}
-      </div>
 
-      {/* Sparkline */}
-      <BlockRateSparkline points={points} />
-
-      {/* Filters */}
-      {points.length > 0 && (
-        <FamilyFilterChips active={activeFilters} onChange={setActiveFilters} />
-      )}
-
-      {/* Main scatter chart */}
-      <div className="trend-page__chart-wrap">
-        {loading ? (
-          <div className="trend-page__loading" aria-busy="true">Loading…</div>
-        ) : (
-          <SessionTimeline
-            points={points}
-            activeFilters={activeFilters}
-            onPointClick={handlePointClick}
-          />
+        {/* Summary of filtered view */}
+        {!loading && filteredPoints.length > 0 && filter !== 'all' && (
+          <p className="trend-hint">
+            Showing {filteredPoints.length} of {points.length} predictions
+          </p>
         )}
       </div>
-
-      {points.length > 0 && (
-        <p className="trend-page__hint">
-          Click any point to jump to that message in the chat.
-        </p>
-      )}
     </div>
   )
 }
