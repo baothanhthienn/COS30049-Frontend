@@ -4,7 +4,7 @@ import { useSessionStore } from '../store/sessionStore'
 import type { ChatMessage } from '../store/sessionStore'
 import { fetchTrend, ApiError } from '../api/client'
 import type { TrendPoint, AttackFamily } from '../types/api'
-import { FAMILY_META } from '../components/trend/familyMeta'
+
 import './TrendPage.css'
 
 const ORDERED_FAMILIES: AttackFamily[] = [

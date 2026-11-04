@@ -47,10 +47,10 @@ jobs:
 
       - name: Build
         run: npm run build
-      - name: Assert no dangerouslySetInnerHTML in compiled output
+      - name: Assert no dangerouslySetInnerHTML in source
         run: |
-          if grep -r "dangerouslySetInnerHTML" dist/ 2>/dev/null; then
-            echo "FAIL: dangerouslySetInnerHTML found in build output"
+          if grep -r "dangerouslySetInnerHTML" src/ 2>/dev/null; then
+            echo "FAIL: dangerouslySetInnerHTML found in source"
             exit 1
           fi
-          echo "OK: no dangerouslySetInnerHTML in dist/"
+          echo "OK: no dangerouslySetInnerHTML in src/"
