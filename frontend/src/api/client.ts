@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ClassifyRequest, ClassifyResponse, TrendResponse, HistoryResponse } from '../types/api'
+import type { ClassifyRequest, ClassifyResponse, TrendResponse, HistoryResponse, SessionMeta } from '../types/api'
 
 export class ApiError extends Error {
   code: string
@@ -63,5 +63,23 @@ export async function deleteSession(sessionId: string): Promise<void> {
 
 export async function getHealth(): Promise<{ status: string }> {
   const { data } = await http.get<{ status: string }>('/api/health')
+  return data
+}
+
+export async function listSessions(): Promise<SessionMeta[]> {
+  const { data } = await http.get<SessionMeta[]>('/api/sessions')
+  return data
+}
+
+export async function upsertSession(id: string, preview: string): Promise<SessionMeta> {
+  const { data } = await http.post<SessionMeta>('/api/sessions', { id, preview })
+  return data
+}
+
+export async function patchSession(
+  id: string,
+  patch: { preview?: string; last_verdict?: string },
+): Promise<SessionMeta> {
+  const { data } = await http.patch<SessionMeta>(`/api/sessions/${id}`, patch)
   return data
 }

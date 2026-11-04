@@ -90,3 +90,11 @@ export interface ApiError {
   message: string
   reference_id: string
 }
+
+export interface SessionMeta {
+  id: string
+  created_at: string
+  updated_at: string
+  preview: string
+  last_verdict: 'BLOCK' | 'ALLOW' | null
+}

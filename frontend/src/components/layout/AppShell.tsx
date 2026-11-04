@@ -1,15 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
+import { useSessionStore } from '../../store/sessionStore'
 import './AppShell.css'
 
 export default function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const { loadRemoteSessions, sessionsLoaded } = useSessionStore()
+
+  useEffect(() => {
+    if (!sessionsLoaded) loadRemoteSessions()
+  }, [sessionsLoaded, loadRemoteSessions])
 
   return (
     <div className="app-shell">
-      {/* desktop sidebar — no onClose so ✕ button stays hidden */}
       <Sidebar />
 
       {drawerOpen && (

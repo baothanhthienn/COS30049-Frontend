@@ -5,6 +5,7 @@ import type { ChatMessage } from '../store/sessionStore'
 import { fetchTrend, ApiError } from '../api/client'
 import type { TrendPoint, AttackFamily } from '../types/api'
 
+import { normaliseFamily } from '../utils/normaliseFamily'
 import './TrendPage.css'
 
 const ORDERED_FAMILIES: AttackFamily[] = [
@@ -26,7 +27,7 @@ function buildLocalPoints(messages: ChatMessage[]): TrendPoint[] {
       created_at: m.createdAt.toISOString(),
       verdict: m.result!.verdict,
       confidence: m.result!.confidence,
-      attack_family: m.result!.attack_family,
+      attack_family: normaliseFamily(m.result!.attack_family),
     }))
 }
 
@@ -44,7 +45,7 @@ export default function TrendPage() {
     fetchTrend(sessionId).then(
       (r) => {
         if (cancelled) return
-        setRemotePoints(r.points)
+        setRemotePoints(r.points.map((p) => ({ ...p, attack_family: normaliseFamily(p.attack_family) })))
         setError(null)
         setLoading(false)
       },

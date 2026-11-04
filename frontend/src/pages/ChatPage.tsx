@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { classify, fetchHistory, ApiError } from '../api/client'
+import { normaliseFamily } from '../utils/normaliseFamily'
 import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
 import ChatComposer from '../components/chat/ChatComposer'
@@ -44,7 +45,7 @@ export default function ChatPage() {
       const userMsgId = addUserMessage(text)
       try {
         const result = await classify(text, sessionId)
-        addAssistantResult(userMsgId, result)
+        addAssistantResult(userMsgId, { ...result, attack_family: normaliseFamily(result.attack_family) })
       } catch (err) {
         let msg = 'An unexpected error occurred. Please try again.'
         let refId: string | undefined

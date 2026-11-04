@@ -1,10 +1,19 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import type { ClassifyResponse, HistoryResponse } from '../types/api'
+import { listSessions, upsertSession, patchSession, deleteSession } from '../api/client'
 
-const SESSION_KEY   = 'pid_session_id'
-const SESSIONS_KEY  = 'pid_sessions'
+const SESSION_KEY = 'pid_session_id'
 const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function getOrCreateSessionId(): string {
+  let id = sessionStorage.getItem(SESSION_KEY)
+  if (!id || !UUID_V4_RE.test(id)) {
+    id = uuidv4()
+    sessionStorage.setItem(SESSION_KEY, id)
+  }
+  return id
+}
 
 export interface ChatMessage {
   id: string
@@ -18,25 +27,27 @@ export interface ChatMessage {
 
 export interface SessionMeta {
   id: string
-  preview: string   // first user message text, truncated
+  preview: string
   verdict?: 'BLOCKED' | 'ALLOW'
   createdAt: Date
 }
 
 interface SessionState {
   activeSessionId: string
-  sessions: SessionMeta[]       
-  messages: ChatMessage[]      
+  sessions: SessionMeta[]
+  messages: ChatMessage[]
   historyLoaded: boolean
+  sessionsLoaded: boolean
   theme: 'dark' | 'light'
 
-  
+  // alias kept for compatibility
   sessionId: string
 
   addUserMessage:     (text: string) => string
   addAssistantResult: (userMsgId: string, result: ClassifyResponse) => void
   addAssistantError:  (userMsgId: string, error: string, referenceId?: string) => void
   loadHistory:        (history: HistoryResponse) => void
+  loadRemoteSessions: () => Promise<void>
   newSession:         () => void
   switchToSession:    (id: string) => void
   clearMessages:      () => void
@@ -45,61 +56,51 @@ interface SessionState {
   toggleTheme:        () => void
 }
 
-function getOrCreateSessionId(): string {
-  let id = localStorage.getItem(SESSION_KEY)
-  if (!id || !UUID_V4_RE.test(id)) {
-    id = uuidv4()
-    localStorage.setItem(SESSION_KEY, id)
-  }
-  return id
-}
-
-function loadSessions(): SessionMeta[] {
-  try {
-    const raw = localStorage.getItem(SESSIONS_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as Array<{ id: string; preview: string; verdict?: string; createdAt: string }>
-    return parsed.map((s) => ({ ...s, createdAt: new Date(s.createdAt) })) as SessionMeta[]
-  } catch {
-    return []
-  }
-}
-
-function saveSessions(sessions: SessionMeta[]) {
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
-}
-
 const DEFAULT_THEME = 'light'
 document.documentElement.dataset.theme = DEFAULT_THEME
 
 const initialSessionId = getOrCreateSessionId()
-const initialSessions  = loadSessions()
 
 export const useSessionStore = create<SessionState>((set, get) => ({
   activeSessionId: initialSessionId,
   sessionId:       initialSessionId,
-  sessions:        initialSessions,
+  sessions:        [],
   messages:        [],
   historyLoaded:   false,
+  sessionsLoaded:  false,
   theme:           DEFAULT_THEME,
+
+  loadRemoteSessions: async () => {
+    try {
+      const remote = await listSessions()
+      const metas: SessionMeta[] = remote.map((s) => ({
+        id:        s.id,
+        preview:   s.preview,
+        verdict:   s.last_verdict === 'BLOCK' ? 'BLOCKED' : s.last_verdict === 'ALLOW' ? 'ALLOW' : undefined,
+        createdAt: new Date(s.created_at),
+      }))
+      set({ sessions: metas, sessionsLoaded: true })
+    } catch {
+      set({ sessionsLoaded: true })
+    }
+  },
 
   addUserMessage: (text) => {
     const id = uuidv4()
     set((s) => ({
       messages: [...s.messages, { id, role: 'user', text, createdAt: new Date() }],
     }))
-    
+
     const { activeSessionId, sessions } = get()
+    const preview = text.startsWith('[File:')
+      ? text.split('\n')[0].replace(/^\[File:\s*/, '').replace(/\]$/, '').slice(0, 40)
+      : text.slice(0, 40)
+
     const existing = sessions.find((s) => s.id === activeSessionId)
     if (!existing) {
-      const meta: SessionMeta = {
-        id:        activeSessionId,
-        preview:   text.slice(0, 40),
-        createdAt: new Date(),
-      }
-      const next = [meta, ...sessions]
-      saveSessions(next)
-      set({ sessions: next })
+      const meta: SessionMeta = { id: activeSessionId, preview, createdAt: new Date() }
+      set((s) => ({ sessions: [meta, ...s.sessions] }))
+      upsertSession(activeSessionId, preview).catch(() => {})
     }
     return id
   },
@@ -112,14 +113,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         { id, role: 'assistant', text: '', result, createdAt: new Date() },
       ],
     }))
-    
-    const { activeSessionId, sessions } = get()
-    const normalised: 'BLOCKED' | 'ALLOW' = (result.verdict === 'BLOCK' || result.verdict === 'BLOCKED') ? 'BLOCKED' : 'ALLOW'
-    const next: SessionMeta[] = sessions.map((s) =>
-      s.id === activeSessionId ? { ...s, verdict: normalised } : s,
-    )
-    saveSessions(next)
-    set({ sessions: next })
+
+    const { activeSessionId } = get()
+    const normalised: 'BLOCKED' | 'ALLOW' =
+      result.verdict === 'BLOCK' || result.verdict === 'BLOCKED' ? 'BLOCKED' : 'ALLOW'
+
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === activeSessionId ? { ...sess, verdict: normalised } : sess,
+      ),
+    }))
+
+    patchSession(activeSessionId, {
+      last_verdict: normalised === 'BLOCKED' ? 'BLOCK' : 'ALLOW',
+    }).catch(() => {})
   },
 
   addAssistantError: (_userMsgId, error, referenceId) => {
@@ -163,12 +170,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   newSession: () => {
     const id = uuidv4()
-    localStorage.setItem(SESSION_KEY, id)
+    sessionStorage.setItem(SESSION_KEY, id)
     set({ activeSessionId: id, sessionId: id, messages: [], historyLoaded: false })
   },
 
   switchToSession: (id) => {
-    localStorage.setItem(SESSION_KEY, id)
+    sessionStorage.setItem(SESSION_KEY, id)
     set({ activeSessionId: id, sessionId: id, messages: [], historyLoaded: false })
   },
 
@@ -176,20 +183,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   resetSession: () => {
     const id = uuidv4()
-    localStorage.setItem(SESSION_KEY, id)
+    sessionStorage.setItem(SESSION_KEY, id)
     set({ activeSessionId: id, sessionId: id, messages: [], historyLoaded: false })
   },
 
   removeSession: (id) => {
     const { sessions, activeSessionId } = get()
     const next = sessions.filter((s) => s.id !== id)
-    saveSessions(next)
+    set({ sessions: next })
+    deleteSession(id).catch(() => {})
+
     if (id === activeSessionId) {
       const newId = uuidv4()
-      localStorage.setItem(SESSION_KEY, newId)
-      set({ sessions: next, activeSessionId: newId, sessionId: newId, messages: [], historyLoaded: false })
-    } else {
-      set({ sessions: next })
+      sessionStorage.setItem(SESSION_KEY, newId)
+      set({ activeSessionId: newId, sessionId: newId, messages: [], historyLoaded: false })
     }
   },
 
