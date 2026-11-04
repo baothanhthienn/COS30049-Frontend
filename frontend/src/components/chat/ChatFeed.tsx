@@ -69,7 +69,13 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
           className="chat-feed__pair"
         >
           <div className="chat-feed__user-bubble">
-            <p className="chat-feed__user-text">{user.text}</p>
+            {user.text.startsWith('[File:') ? (
+              <p className="chat-feed__user-text chat-feed__user-text--file">
+                📄 {user.text.split('\n')[0].replace(/^\[File:\s*/, '').replace(/\]$/, '')}
+              </p>
+            ) : (
+              <p className="chat-feed__user-text">{user.text}</p>
+            )}
             <p className="chat-feed__user-meta">
               {user.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {' · '}

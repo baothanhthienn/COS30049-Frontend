@@ -63,7 +63,7 @@ export default function TrendPage() {
   }, [sessionId])
 
   const localPoints = useMemo(() => buildLocalPoints(messages), [messages])
-  const points: TrendPoint[] = remotePoints ?? localPoints
+  const points: TrendPoint[] = localPoints.length > 0 ? localPoints : (remotePoints ?? [])
 
   const summary = useMemo(() => {
     const total = points.length
@@ -92,7 +92,7 @@ export default function TrendPage() {
   const rankedFamilies = useMemo(() => {
     return ORDERED_FAMILIES.map((fam) => {
       const count = summary.familyCounts[fam] ?? 0
-      const rate = summary.blocked > 0 ? Math.round((count / summary.blocked) * 100) : 0
+      const rate = summary.total > 0 ? Math.round((count / summary.total) * 100) : 0
       return { fam, count, rate }
     }).sort((a, b) => b.count - a.count)
   }, [summary])
@@ -100,7 +100,7 @@ export default function TrendPage() {
   function handlePointClick(point: TrendPoint) {
     navigate('/', { state: { scrollToId: point.id } })
   }
-  void handlePointClick // used conditionally below
+  void handlePointClick 
 
   const filterOptions: { key: Filter; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -153,7 +153,7 @@ export default function TrendPage() {
               <span>#</span>
               <span>Family</span>
               <span>Blocked</span>
-              <span>% of blocks</span>
+              <span>% of total</span>
             </div>
             {rankedFamilies.map(({ fam, count, rate }, idx) => {
               const dimmed = filter !== 'all' && filter !== 'blocked' && filter !== fam

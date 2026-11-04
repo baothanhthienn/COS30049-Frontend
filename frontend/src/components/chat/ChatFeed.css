@@ -75,6 +75,11 @@
   word-break: break-word;
 }
 
+.chat-feed__user-text--file {
+  font-style: italic;
+  opacity: 0.9;
+}
+
 .chat-feed__user-meta {
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
