@@ -111,9 +111,9 @@ export default function TrendPage() {
   return (
     <div className="trend-main">
       <div className="trend-wrap">
-        {/* Header */}
+
         <div className="trend-head">
-          <h1 className="trend-head__title">This session's results over time</h1>
+          <h1 className="trend-head__title">Session's results over time</h1>
           <div className="trend-head__summary">
             <b>{summary.total}</b> submitted · <b>{summary.blocked}</b> blocked ·{' '}
             <b>{summary.blockRate}%</b> block rate
@@ -127,7 +127,7 @@ export default function TrendPage() {
           <div className="trend-error" role="alert">{error}</div>
         )}
 
-        {/* Filter chips */}
+        
         <div className="trend-filter-chips">
           <span className="trend-filter-chips__label">Filter:</span>
           {filterOptions.map(({ key, label }) => (
@@ -142,7 +142,7 @@ export default function TrendPage() {
           ))}
         </div>
 
-        {/* Rank table */}
+        
         {loading ? (
           <div className="trend-loading" aria-busy="true">Loading…</div>
         ) : points.length === 0 ? (
@@ -183,7 +183,7 @@ export default function TrendPage() {
           </div>
         )}
 
-        {/* Summary of filtered view */}
+       
         {!loading && filteredPoints.length > 0 && filter !== 'all' && (
           <p className="trend-hint">
             Showing {filteredPoints.length} of {points.length} predictions
