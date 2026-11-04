@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
-import type { ChatMessage } from '../store/sessionStore'
 import { fetchTrend, ApiError } from '../api/client'
 import type { TrendPoint, AttackFamily } from '../types/api'
 
@@ -19,21 +17,8 @@ const ORDERED_FAMILIES: AttackFamily[] = [
 
 type Filter = 'all' | 'blocked' | AttackFamily
 
-function buildLocalPoints(messages: ChatMessage[]): TrendPoint[] {
-  return messages
-    .filter((m) => m.role === 'assistant' && m.result)
-    .map((m) => ({
-      id: m.id,
-      created_at: m.createdAt.toISOString(),
-      verdict: m.result!.verdict,
-      confidence: m.result!.confidence,
-      attack_family: normaliseFamily(m.result!.attack_family),
-    }))
-}
-
 export default function TrendPage() {
-  const { sessionId, messages } = useSessionStore()
-  const navigate = useNavigate()
+  const { sessionId } = useSessionStore()
 
   const [remotePoints, setRemotePoints] = useState<TrendPoint[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -63,8 +48,7 @@ export default function TrendPage() {
     return () => { cancelled = true }
   }, [sessionId])
 
-  const localPoints = useMemo(() => buildLocalPoints(messages), [messages])
-  const points: TrendPoint[] = localPoints.length > 0 ? localPoints : (remotePoints ?? [])
+  const points: TrendPoint[] = remotePoints ?? []
 
   const summary = useMemo(() => {
     const total = points.length
@@ -97,11 +81,6 @@ export default function TrendPage() {
       return { fam, count, rate }
     }).sort((a, b) => b.count - a.count)
   }, [summary])
-
-  function handlePointClick(point: TrendPoint) {
-    navigate('/', { state: { scrollToId: point.id } })
-  }
-  void handlePointClick 
 
   const filterOptions: { key: Filter; label: string }[] = [
     { key: 'all', label: 'All' },

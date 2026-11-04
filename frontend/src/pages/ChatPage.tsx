@@ -13,7 +13,7 @@ export default function ChatPage() {
     useSessionStore()
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const location = useLocation()
-  const [_focusedIdx, setFocusedIdx] = useState<number | null>(null)
+  const [, setFocusedIdx] = useState<number | null>(null)
 
   // Load chat history from the backend on first mount
   useEffect(() => {
