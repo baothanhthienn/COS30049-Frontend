@@ -18,10 +18,12 @@ interface Props {
 }
 
 export default function ChatFeed({ messages, onExampleClick }: Props) {
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = feedRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages.length])
 
   if (messages.length === 0) {
@@ -59,7 +61,7 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
   }
 
   return (
-    <div className="chat-feed" role="log" aria-label="Analysis history" aria-live="polite">
+    <div ref={feedRef} className="chat-feed" role="log" aria-label="Analysis history" aria-live="polite">
       {pairs.map(({ user, assistant }) => (
         <div
           key={user.id}
@@ -102,7 +104,6 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
           </div>
         </div>
       ))}
-      <div ref={bottomRef} />
     </div>
   )
 }
