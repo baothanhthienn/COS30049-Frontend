@@ -47,8 +47,8 @@ export default function AssistantResponse({ result, userText }: Props) {
       )}
 
       <p className="asst-response__meta">
-        {new Date(result.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        {' · '}model {result.model_version}
+        {(() => { const d = new Date(result.created_at); return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' })()}
+        model {result.model_version}
       </p>
     </div>
   )
