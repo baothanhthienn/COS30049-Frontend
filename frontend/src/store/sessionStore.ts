@@ -143,31 +143,32 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   loadHistory: (history) => {
-    const msgs: ChatMessage[] = []
-    for (const item of [...history.items].reverse()) {
-      msgs.push({
+    const msgs: ChatMessage[] = [...history.items].reverse().flatMap((item) => [
+      {
         id:        `${item.id}-user`,
-        role:      'user',
+        role:      'user' as const,
         text:      item.text,
         createdAt: new Date(item.created_at),
-      })
-      msgs.push({
-        id:   item.id,
-        role: 'assistant',
-        text: '',
+      },
+      {
+        id:           item.id,
+        role:         'assistant' as const,
+        text:         '',
         result: {
-          id:             item.id,
-          verdict:        item.verdict,
-          confidence:     item.confidence,
-          attack_family:  normaliseFamily(item.attack_family),
-          family_scores:  {} as ClassifyResponse['family_scores'],
-          trigger_spans:  [],
-          model_version:  '',
-          created_at:     item.created_at,
+          id:            item.id,
+          verdict:       item.verdict,
+          confidence:    item.confidence,
+          attack_family: normaliseFamily(item.attack_family),
+          family_scores: (item.family_scores ?? {}) as unknown as ClassifyResponse['family_scores'],
+          trigger_spans: [],
+          model_version: '',
+          created_at:    item.created_at,
         } as ClassifyResponse,
-        createdAt: new Date(item.created_at),
-      })
-    }
+        groqReply:    item.reply ?? undefined,
+        blockedReason: item.blocked_reason ?? undefined,
+        createdAt:    new Date(item.created_at),
+      },
+    ])
     set({ messages: msgs, historyLoaded: true })
   },
 

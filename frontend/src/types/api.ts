@@ -93,6 +93,9 @@ export interface HistoryItem {
   attack_family: AttackFamily
   confidence: number
   created_at: string
+  reply?: string | null
+  blocked_reason?: string | null
+  family_scores?: Record<string, number>
 }
 
 export interface HistoryResponse {
