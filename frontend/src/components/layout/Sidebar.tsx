@@ -18,7 +18,7 @@ function timeAgo(date: Date): string {
 }
 
 export default function Sidebar({ onClose }: Props) {
-  const { sessions, activeSessionId, sessionId, newSession, switchToSession, removeSession, addUserMessage, addAssistantResult, addAssistantError } =
+  const { sessions, activeSessionId, sessionId, newSession, switchToSession, clearMessages, addUserMessage, addAssistantResult, addAssistantError } =
     useSessionStore()
   const navigate = useNavigate()
   const location = useLocation()
@@ -38,11 +38,9 @@ export default function Sidebar({ onClose }: Props) {
   }
 
   function handleClear() {
-    if (window.confirm('Remove this session from the sidebar? This cannot be undone.')) {
-      removeSession(activeSessionId)
-      navigate('/')
-      onClose?.()
-    }
+    clearMessages()
+    navigate('/')
+    onClose?.()
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {

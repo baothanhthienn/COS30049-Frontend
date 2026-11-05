@@ -7,7 +7,7 @@ const MODEL_VERSION = import.meta.env.VITE_MODEL_VERSION || 'v1.0'
 const RETRY_INTERVAL = 10
 
 export default function Topbar() {
-  const { theme, toggleTheme, resetSession } = useSessionStore()
+  const { theme, toggleTheme, activeSessionId, removeSession } = useSessionStore()
   const navigate = useNavigate()
   const [offline, setOffline] = useState(!navigator.onLine)
   const [countdown, setCountdown] = useState(RETRY_INTERVAL)
@@ -60,11 +60,11 @@ export default function Topbar() {
     setMenuOpen(false)
   }
 
-  function handleClearSession() {
+  function handleDeleteSession() {
     setMenuOpen(false)
-    if (window.confirm('Clear session and all history? This cannot be undone.')) {
-      resetSession()
-      navigate('/')
+    if (window.confirm('Delete this session and all its history? This cannot be undone.')) {
+      removeSession(activeSessionId)
+      navigate('/trend')
     }
   }
 
@@ -112,10 +112,10 @@ export default function Topbar() {
                 <button
                   className="topbar__menu-item topbar__menu-item--danger"
                   role="menuitem"
-                  onClick={handleClearSession}
+                  onClick={handleDeleteSession}
                 >
                   <span className="topbar__menu-icon" aria-hidden="true">⊗</span>
-                  Clear session
+                  Delete session
                 </button>
               </div>
             )}
