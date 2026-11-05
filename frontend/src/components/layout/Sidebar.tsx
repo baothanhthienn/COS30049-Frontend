@@ -64,7 +64,8 @@ export default function Sidebar({ onClose }: Props) {
       setUploading(false)
       return
     }
-    const label = `[File: ${file.name}]\n${text.slice(0, 10_000)}`
+    const truncated = text.length > 9_800
+    const label = `[File: ${file.name}]\n${text.slice(0, 9_800)}`
     const userMsgId = addUserMessage(label)
     try {
       const chatResult = await sendChat(label, sessionId, [])
@@ -78,13 +79,24 @@ export default function Sidebar({ onClose }: Props) {
         model_version: '',
         created_at: new Date().toISOString(),
       }
-      addAssistantResult(userMsgId, result, chatResult.reply || undefined, chatResult.blocked_reason || undefined)
+      addAssistantResult(
+        userMsgId,
+        result,
+        truncated
+          ? `${chatResult.reply || ''}\n\n⚠️ File was large — only the first 9,800 characters were analysed.`.trim()
+          : chatResult.reply || undefined,
+        chatResult.blocked_reason || undefined,
+      )
     } catch (err) {
       let msg = 'An unexpected error occurred.'
       if (err instanceof ApiError) {
-        msg = err.status === 0 || err.status >= 502
-          ? 'Could not reach the API. Check that the backend is running.'
-          : err.message
+        if (err.status === 0 || err.status >= 502) {
+          msg = 'Could not reach the API. Check that the backend is running.'
+        } else if (typeof err.message === 'string' && err.message.includes('10000 characters')) {
+          msg = '⚠️ File too large — please upload a shorter document (under 10,000 characters).'
+        } else {
+          msg = err.message
+        }
       } else if (err instanceof Error) {
         msg = err.message
       }

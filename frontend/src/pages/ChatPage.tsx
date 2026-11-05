@@ -46,8 +46,8 @@ export default function ChatPage() {
           .filter((m) => m.role === 'user' || (m.role === 'assistant' && m.groqReply))
           .slice(-20)
           .reduce<Array<{ role: 'user' | 'assistant'; content: string }>>((acc, m) => {
-            if (m.role === 'user') acc.push({ role: 'user', content: m.text })
-            else if (m.groqReply) acc.push({ role: 'assistant', content: m.groqReply })
+            if (m.role === 'user') acc.push({ role: 'user', content: m.text.slice(0, 9_800) })
+            else if (m.groqReply) acc.push({ role: 'assistant', content: m.groqReply.slice(0, 9_800) })
             return acc
           }, [])
           .slice(-10)
@@ -82,6 +82,8 @@ export default function ChatPage() {
             msg = 'Chat service unavailable. The AI service may not be configured on the server.'
           } else if (err.status === 502) {
             msg = err.message || 'LLM service error. Please try again.'
+          } else if (err.status === 422 && typeof err.message === 'string' && err.message.includes('10000 characters')) {
+            msg = 'Your message or file is too large. Please shorten it and try again.'
           } else if (err.status >= 400) {
             msg = err.message || `Request failed (${err.status}). Please try again.`
           } else if (err.status >= 500) {
