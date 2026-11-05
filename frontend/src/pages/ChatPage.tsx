@@ -16,7 +16,6 @@ export default function ChatPage() {
   const location = useLocation()
   const [, setFocusedIdx] = useState<number | null>(null)
 
-  // Load chat history from the backend on first mount
   useEffect(() => {
     if (historyLoaded) return
     fetchHistory(sessionId, 50, 0)
@@ -74,8 +73,9 @@ export default function ChatPage() {
         await runClassify(text)
         return
       }
-      for (const { example } of examples) {
-        await runClassify(example)
+      for (const { family, example } of examples) {
+        const prompt = `${text}\n\n--- [${family}] ---\n${example}`
+        await runClassify(prompt)
       }
     },
     [runClassify],
