@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { classify, fetchHistory, ApiError } from '../api/client'
 import { normaliseFamily } from '../utils/normaliseFamily'
-import { parseAttackExamples } from '../utils/parseAttackExamples'
 import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
 import ChatComposer from '../components/chat/ChatComposer'
@@ -66,21 +65,6 @@ export default function ChatPage() {
     [sessionId, addUserMessage, addAssistantResult, addAssistantError],
   )
 
-  const runBatchClassify = useCallback(
-    async (text: string) => {
-      const examples = parseAttackExamples(text)
-      if (!examples) {
-        await runClassify(text)
-        return
-      }
-      for (const { family, example } of examples) {
-        const prompt = `${text}\n\n--- [${family}] ---\n${example}`
-        await runClassify(prompt)
-      }
-    },
-    [runClassify],
-  )
-
   const handleExampleClick = useCallback(
     (text: string) => {
       if (!isLoading) runClassify(text)
@@ -110,7 +94,7 @@ export default function ChatPage() {
   return (
     <div className="chat-page">
       <ChatFeed messages={messages} onExampleClick={handleExampleClick} />
-      <ChatComposer onSubmit={runBatchClassify} disabled={isLoading} composerRef={composerRef} />
+      <ChatComposer onSubmit={runClassify} disabled={isLoading} composerRef={composerRef} />
     </div>
   )
 }
