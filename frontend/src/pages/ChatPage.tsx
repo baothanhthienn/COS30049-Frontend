@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { classify, fetchHistory, ApiError } from '../api/client'
 import { normaliseFamily } from '../utils/normaliseFamily'
+import { parseAttackExamples } from '../utils/parseAttackExamples'
 import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
 import ChatComposer from '../components/chat/ChatComposer'
@@ -23,7 +24,6 @@ export default function ChatPage() {
       .catch(() => { /* silently ignore — new session or backend unavailable */ })
   }, [sessionId, historyLoaded, loadHistory])
 
-  // Scroll to a specific message when navigated from TrendPage
   useEffect(() => {
     const scrollToId = (location.state as { scrollToId?: string } | null)?.scrollToId
     if (!scrollToId) return
@@ -67,6 +67,20 @@ export default function ChatPage() {
     [sessionId, addUserMessage, addAssistantResult, addAssistantError],
   )
 
+  const runBatchClassify = useCallback(
+    async (text: string) => {
+      const examples = parseAttackExamples(text)
+      if (!examples) {
+        await runClassify(text)
+        return
+      }
+      for (const { example } of examples) {
+        await runClassify(example)
+      }
+    },
+    [runClassify],
+  )
+
   const handleExampleClick = useCallback(
     (text: string) => {
       if (!isLoading) runClassify(text)
@@ -96,7 +110,7 @@ export default function ChatPage() {
   return (
     <div className="chat-page">
       <ChatFeed messages={messages} onExampleClick={handleExampleClick} />
-      <ChatComposer onSubmit={runClassify} disabled={isLoading} composerRef={composerRef} />
+      <ChatComposer onSubmit={runBatchClassify} disabled={isLoading} composerRef={composerRef} />
     </div>
   )
 }
