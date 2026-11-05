@@ -83,7 +83,9 @@ export default function ChatPage() {
           } else if (err.status === 502) {
             msg = err.message || 'LLM service error. Please try again.'
           } else if (err.status >= 400) {
-            msg = err.message
+            msg = err.message || `Request failed (${err.status}). Please try again.`
+          } else if (err.status >= 500) {
+            msg = err.message || `Server error (${err.status}). Please try again.`
           }
         } else if (err instanceof Error) {
           msg = err.message
