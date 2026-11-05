@@ -1,8 +1,9 @@
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useRef, useState } from 'react'
 import { useSessionStore } from '../../store/sessionStore'
-import { classify, ApiError } from '../../api/client'
+import { sendChat, ApiError } from '../../api/client'
 import { extractText, ACCEPT } from '../../utils/fileExtract'
+import { normaliseFamily } from '../../utils/normaliseFamily'
 import './Sidebar.css'
 
 interface Props {
@@ -66,8 +67,18 @@ export default function Sidebar({ onClose }: Props) {
     const label = `[File: ${file.name}]\n${text.slice(0, 10_000)}`
     const userMsgId = addUserMessage(label)
     try {
-      const result = await classify(label, sessionId)
-      addAssistantResult(userMsgId, result)
+      const chatResult = await sendChat(label, sessionId, [])
+      const result = {
+        id: chatResult.id,
+        verdict: chatResult.verdict,
+        confidence: chatResult.confidence,
+        attack_family: normaliseFamily(chatResult.attack_family ?? 'benign'),
+        family_scores: chatResult.family_scores,
+        trigger_spans: [],
+        model_version: '',
+        created_at: new Date().toISOString(),
+      }
+      addAssistantResult(userMsgId, result, chatResult.reply || undefined, chatResult.blocked_reason || undefined)
     } catch (err) {
       let msg = 'An unexpected error occurred.'
       if (err instanceof ApiError) {
