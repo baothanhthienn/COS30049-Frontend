@@ -170,7 +170,7 @@ export default function Sidebar({ onClose }: Props) {
         className={`sidebar__link${isTrend ? ' sidebar__link--active' : ''}`}
         onClick={onClose}
       >
-        <span>Session trend</span>
+        <span>Ranking Table</span>
         <span className="sidebar__link-arrow">→</span>
       </Link>
       <Link

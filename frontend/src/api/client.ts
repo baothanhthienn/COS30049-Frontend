@@ -81,6 +81,7 @@ export async function listSessions(): Promise<SessionMeta[]> {
   return data
 }
 
+
 export async function upsertSession(id: string, preview: string): Promise<SessionMeta> {
   const { data } = await http.post<SessionMeta>('/api/sessions', { id, preview })
   return data
