@@ -76,8 +76,12 @@ export default function ChatPage() {
         let refId: string | undefined
         if (err instanceof ApiError) {
           refId = err.referenceId || undefined
-          if (err.status === 0 || err.status === 502 || err.status === 503) {
+          if (err.status === 0) {
             msg = 'Could not reach the API. Check that the backend is running.'
+          } else if (err.status === 503) {
+            msg = 'Chat service unavailable. The AI service may not be configured on the server.'
+          } else if (err.status === 502) {
+            msg = err.message || 'LLM service error. Please try again.'
           } else if (err.status >= 400) {
             msg = err.message
           }
