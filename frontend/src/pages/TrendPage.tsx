@@ -16,9 +16,10 @@ const ORDERED_FAMILIES: AttackFamily[] = [
 ]
 
 type Filter = 'all' | 'blocked' | AttackFamily
+const FAMILY_SCORE_THRESHOLD = 0.10
 
 export default function TrendPage() {
-  const { sessionId } = useSessionStore()
+  const { sessionId, messages } = useSessionStore()
 
   const [remotePoints, setRemotePoints] = useState<TrendPoint[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +51,16 @@ export default function TrendPage() {
 
   const points: TrendPoint[] = remotePoints ?? []
 
+  const scoresByResultId = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {}
+    for (const msg of messages) {
+      if (msg.role === 'assistant' && msg.result?.family_scores && msg.result.id) {
+        map[msg.result.id] = msg.result.family_scores as unknown as Record<string, number>
+      }
+    }
+    return map
+  }, [messages])
+
   const summary = useMemo(() => {
     const total = points.length
     const blocked = points.filter(
@@ -57,16 +68,32 @@ export default function TrendPage() {
     ).length
     const blockRate = total > 0 ? Math.round((blocked / total) * 100) : 0
     const familyCounts: Partial<Record<AttackFamily, number>> = {}
+
     for (const p of points) {
-      if (p.verdict === 'BLOCKED' || p.verdict === 'BLOCK') {
+      if (!(p.verdict === 'BLOCKED' || p.verdict === 'BLOCK')) continue
+
+      const scores = scoresByResultId[p.id]
+      if (scores) {
+        let counted = false
+        for (const fam of ORDERED_FAMILIES) {
+          if ((scores[fam] ?? 0) >= FAMILY_SCORE_THRESHOLD) {
+            familyCounts[fam] = (familyCounts[fam] ?? 0) + 1
+            counted = true
+          }
+        }
+        if (!counted) {
+          familyCounts[p.attack_family] = (familyCounts[p.attack_family] ?? 0) + 1
+        }
+      } else {
         familyCounts[p.attack_family] = (familyCounts[p.attack_family] ?? 0) + 1
       }
     }
+
     const topFamily =
       (Object.entries(familyCounts) as [AttackFamily, number][])
         .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
     return { total, blocked, blockRate, topFamily, familyCounts }
-  }, [points])
+  }, [points, scoresByResultId])
 
   const filteredPoints = useMemo(() => {
     if (filter === 'all') return points
