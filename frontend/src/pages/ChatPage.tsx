@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
-import { classify, fetchHistory, ApiError } from '../api/client'
+import { sendChat, fetchHistory, ApiError } from '../api/client'
 import { normaliseFamily } from '../utils/normaliseFamily'
 import { useShortcuts } from '../hooks/useShortcuts'
 import ChatFeed from '../components/chat/ChatFeed'
@@ -38,12 +38,39 @@ export default function ChatPage() {
     messages.length > 0 &&
     messages[messages.length - 1].role === 'user'
 
-  const runClassify = useCallback(
+  const runChat = useCallback(
     async (text: string) => {
       const userMsgId = addUserMessage(text)
       try {
-        const result = await classify(text, sessionId)
-        addAssistantResult(userMsgId, { ...result, attack_family: normaliseFamily(result.attack_family) })
+        const history = messages
+          .filter((m) => m.role === 'user' || (m.role === 'assistant' && m.groqReply))
+          .slice(-20)
+          .reduce<Array<{ role: 'user' | 'assistant'; content: string }>>((acc, m) => {
+            if (m.role === 'user') acc.push({ role: 'user', content: m.text })
+            else if (m.groqReply) acc.push({ role: 'assistant', content: m.groqReply })
+            return acc
+          }, [])
+          .slice(-10)
+
+        const chatResult = await sendChat(text, sessionId, history)
+
+        const result = {
+          id: chatResult.id,
+          verdict: chatResult.verdict,
+          confidence: chatResult.confidence,
+          attack_family: normaliseFamily(chatResult.attack_family ?? 'benign'),
+          family_scores: chatResult.family_scores,
+          trigger_spans: [],
+          model_version: '',
+          created_at: new Date().toISOString(),
+        }
+
+        addAssistantResult(
+          userMsgId,
+          result,
+          chatResult.reply || undefined,
+          chatResult.blocked_reason || undefined,
+        )
       } catch (err) {
         let msg = 'An unexpected error occurred. Please try again.'
         let refId: string | undefined
@@ -62,17 +89,16 @@ export default function ChatPage() {
         composerRef.current?.focus()
       }
     },
-    [sessionId, addUserMessage, addAssistantResult, addAssistantError],
+    [sessionId, messages, addUserMessage, addAssistantResult, addAssistantError],
   )
 
   const handleExampleClick = useCallback(
     (text: string) => {
-      if (!isLoading) runClassify(text)
+      if (!isLoading) runChat(text)
     },
-    [isLoading, runClassify],
+    [isLoading, runChat],
   )
 
-  // J/K navigation: collect all pair elements in DOM order
   function scrollToPair(delta: number) {
     const pairEls = Array.from(document.querySelectorAll<HTMLElement>('[id^="msg-"]'))
     if (pairEls.length === 0) return
@@ -94,7 +120,7 @@ export default function ChatPage() {
   return (
     <div className="chat-page">
       <ChatFeed messages={messages} onExampleClick={handleExampleClick} />
-      <ChatComposer onSubmit={runClassify} disabled={isLoading} composerRef={composerRef} />
+      <ChatComposer onSubmit={runChat} disabled={isLoading} composerRef={composerRef} />
     </div>
   )
 }

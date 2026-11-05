@@ -97,7 +97,12 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
               </div>
             )}
             {assistant?.result && (
-              <AssistantResponse result={assistant.result} userText={user.text} />
+              <AssistantResponse
+                result={assistant.result}
+                userText={user.text}
+                groqReply={assistant.groqReply}
+                blockedReason={assistant.blockedReason}
+              />
             )}
             {assistant?.error && (
               <div className="chat-feed__error-wrap">

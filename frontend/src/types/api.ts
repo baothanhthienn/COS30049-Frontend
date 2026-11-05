@@ -69,6 +69,23 @@ export interface TrendResponse {
   summary: TrendSummary
 }
 
+export interface ChatRequest {
+  message: string
+  session_id: string
+  history: Array<{ role: 'user' | 'assistant'; content: string }>
+}
+
+export interface ChatResponse {
+  id: string
+  session_id: string
+  verdict: Verdict
+  confidence: number
+  attack_family: AttackFamily | null
+  family_scores: FamilyScores
+  reply: string
+  blocked_reason: string | null
+}
+
 export interface HistoryItem {
   id: string
   text: string

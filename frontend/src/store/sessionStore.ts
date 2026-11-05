@@ -21,6 +21,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   text: string
   result?: ClassifyResponse
+  groqReply?: string
+  blockedReason?: string
   error?: string
   referenceId?: string
   createdAt: Date
@@ -45,7 +47,7 @@ interface SessionState {
   sessionId: string
 
   addUserMessage:     (text: string) => string
-  addAssistantResult: (userMsgId: string, result: ClassifyResponse) => void
+  addAssistantResult: (userMsgId: string, result: ClassifyResponse, groqReply?: string, blockedReason?: string) => void
   addAssistantError:  (userMsgId: string, error: string, referenceId?: string) => void
   loadHistory:        (history: HistoryResponse) => void
   loadRemoteSessions: () => Promise<void>
@@ -106,12 +108,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     return id
   },
 
-  addAssistantResult: (_userMsgId, result) => {
+  addAssistantResult: (_userMsgId, result, groqReply, blockedReason) => {
     const id = uuidv4()
     set((s) => ({
       messages: [
         ...s.messages,
-        { id, role: 'assistant', text: '', result, createdAt: new Date() },
+        { id, role: 'assistant', text: '', result, groqReply, blockedReason, createdAt: new Date() },
       ],
     }))
 

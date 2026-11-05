@@ -20,6 +20,7 @@ const FAMILY_SCORE_THRESHOLD = 0.10
 
 export default function TrendPage() {
   const { sessionId, messages } = useSessionStore()
+  const assistantCount = messages.filter(m => m.role === 'assistant' && m.result).length
 
   const [remotePoints, setRemotePoints] = useState<TrendPoint[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -47,7 +48,7 @@ export default function TrendPage() {
       },
     )
     return () => { cancelled = true }
-  }, [sessionId])
+  }, [sessionId, assistantCount])
 
   const points: TrendPoint[] = remotePoints ?? []
 

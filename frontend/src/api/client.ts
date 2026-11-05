@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ClassifyRequest, ClassifyResponse, TrendResponse, HistoryResponse, SessionMeta } from '../types/api'
+import type { ClassifyRequest, ClassifyResponse, ChatRequest, ChatResponse, TrendResponse, HistoryResponse, SessionMeta } from '../types/api'
 
 export class ApiError extends Error {
   code: string
@@ -38,6 +38,16 @@ http.interceptors.response.use(
 export async function classify(text: string, sessionId: string): Promise<ClassifyResponse> {
   const body: ClassifyRequest = { text, session_id: sessionId }
   const { data } = await http.post<ClassifyResponse>('/api/classify', body)
+  return data
+}
+
+export async function sendChat(
+  message: string,
+  sessionId: string,
+  history: Array<{ role: 'user' | 'assistant'; content: string }>,
+): Promise<ChatResponse> {
+  const body: ChatRequest = { message, session_id: sessionId, history }
+  const { data } = await http.post<ChatResponse>('/api/chat', body)
   return data
 }
 

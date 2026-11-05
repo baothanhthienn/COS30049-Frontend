@@ -3,14 +3,17 @@ import type { ClassifyResponse, AttackFamily } from '../../types/api'
 import VerdictBadge from '../verdict/VerdictBadge'
 import SpanHighlighter from '../verdict/SpanHighlighter'
 import FamilyBreakdown from '../verdict/FamilyBreakdown'
+import FamilyScoresChart from '../verdict/FamilyScoresChart'
 import './AssistantResponse.css'
 
 interface Props {
   result: ClassifyResponse
   userText: string
+  groqReply?: string
+  blockedReason?: string
 }
 
-export default function AssistantResponse({ result, userText }: Props) {
+export default function AssistantResponse({ result, userText, groqReply, blockedReason }: Props) {
   const [activeFamily, setActiveFamily] = useState<AttackFamily | null>(null)
 
   function handleFamilyClick(fam: AttackFamily) {
@@ -18,32 +21,66 @@ export default function AssistantResponse({ result, userText }: Props) {
   }
 
   const isBlocked = result.verdict === 'BLOCKED' || result.verdict === 'BLOCK'
+  const hasScores = result.family_scores && Object.keys(result.family_scores).length > 0
 
   return (
     <div className={`asst-response asst-response--${isBlocked ? 'blocked' : 'allow'}`}>
       <VerdictBadge verdict={result.verdict} confidence={result.confidence} />
 
-      {isBlocked && (result.trigger_spans ?? []).length > 0 && (
+      {isBlocked && (
         <>
-          <p className="asst-response__section-head">Why this was flagged</p>
-          <SpanHighlighter
-            text={userText}
-            spans={result.trigger_spans ?? []}
-            activeFamily={activeFamily}
-            onSpanClick={handleFamilyClick}
-          />
-          <FamilyBreakdown
-            scores={result.family_scores}
-            activeFamily={activeFamily}
-            onFamilyClick={handleFamilyClick}
-          />
+          {blockedReason && (
+            <div className="asst-response__block-banner" role="alert">
+              <span className="asst-response__block-banner-icon" aria-hidden="true">⚠</span>
+              {blockedReason}
+            </div>
+          )}
+
+          {(result.trigger_spans ?? []).length > 0 && (
+            <>
+              <p className="asst-response__section-head">Why this was flagged</p>
+              <SpanHighlighter
+                text={userText}
+                spans={result.trigger_spans ?? []}
+                activeFamily={activeFamily}
+                onSpanClick={handleFamilyClick}
+              />
+            </>
+          )}
+
+          {hasScores && (
+            <>
+              <p className="asst-response__section-head">Attack family scores</p>
+              <FamilyScoresChart scores={result.family_scores} />
+              <FamilyBreakdown
+                scores={result.family_scores}
+                activeFamily={activeFamily}
+                onFamilyClick={handleFamilyClick}
+              />
+            </>
+          )}
+
+          {groqReply && (
+            <>
+              <p className="asst-response__section-head">Suggested response</p>
+              <p className="asst-response__groq-reply asst-response__groq-reply--blocked">
+                {groqReply}
+              </p>
+            </>
+          )}
         </>
       )}
 
       {!isBlocked && (
-        <p className="asst-response__benign-note">
-          No injection signal detected. Stage A gate scored below the threshold.
-        </p>
+        <>
+          {groqReply ? (
+            <p className="asst-response__groq-reply">{groqReply}</p>
+          ) : (
+            <p className="asst-response__benign-note">
+              No injection signal detected. Stage A gate scored below the threshold.
+            </p>
+          )}
+        </>
       )}
 
       <p className="asst-response__meta">
