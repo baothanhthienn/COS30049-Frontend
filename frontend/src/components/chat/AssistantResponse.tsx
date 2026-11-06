@@ -50,7 +50,7 @@ export default function AssistantResponse({ result, userText, groqReply, blocked
 
           {hasScores && (
             <>
-              <p className="asst-response__section-head">Attack family scores</p>
+              <p className="asst-response__section-head">Predicted Attack Families</p>
               <FamilyScoresChart scores={result.family_scores} />
               <FamilyBreakdown
                 scores={result.family_scores}
