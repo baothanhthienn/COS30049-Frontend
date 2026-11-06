@@ -60,7 +60,12 @@ export default function ChatPage() {
           confidence: chatResult.confidence,
           attack_family: normaliseFamily(chatResult.attack_family ?? 'benign'),
           family_scores: chatResult.family_scores,
-          trigger_spans: [],
+          trigger_spans: (chatResult.spans ?? []).map((s) => ({
+            start: s.start,
+            end: s.end,
+            family: normaliseFamily(s.label as import('../types/api').AttackFamily),
+            weight: 1.0,
+          })),
           model_version: '',
           created_at: new Date().toISOString(),
         }

@@ -75,6 +75,12 @@ export interface ChatRequest {
   history: Array<{ role: 'user' | 'assistant'; content: string }>
 }
 
+export interface SpanOut {
+  start: number
+  end: number
+  label: string
+}
+
 export interface ChatResponse {
   id: string
   session_id: string
@@ -82,6 +88,7 @@ export interface ChatResponse {
   confidence: number
   attack_family: AttackFamily | null
   family_scores: FamilyScores
+  spans: SpanOut[]
   reply: string
   blocked_reason: string | null
 }
