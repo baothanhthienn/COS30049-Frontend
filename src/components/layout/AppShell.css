@@ -81,6 +81,32 @@
   }
 }
 
+/* App-level initial load skeleton */
+.app-shell__sidebar-skeleton {
+  padding: var(--space-4);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__topbar-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.app-shell__feed-skeleton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding: var(--space-6) clamp(var(--space-4), 10vw, 120px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-shell__sidebar-drawer {
     transition: none;

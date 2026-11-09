@@ -14,12 +14,15 @@ export default function ChatPage() {
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const location = useLocation()
   const [, setFocusedIdx] = useState<number | null>(null)
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
     if (historyLoaded) return
+    setHistoryLoading(true)
     fetchHistory(sessionId, 50, 0)
       .then((data) => { if (data.items.length > 0) loadHistory(data) })
       .catch(() => { /* silently ignore — new session or backend unavailable */ })
+      .finally(() => setHistoryLoading(false))
   }, [sessionId, historyLoaded, loadHistory])
 
   useEffect(() => {
@@ -132,7 +135,7 @@ export default function ChatPage() {
 
   return (
     <div className="chat-page">
-      <ChatFeed messages={messages} onExampleClick={handleExampleClick} />
+      <ChatFeed messages={messages} onExampleClick={handleExampleClick} historyLoading={historyLoading} />
       <ChatComposer onSubmit={runChat} disabled={isLoading} composerRef={composerRef} />
     </div>
   )

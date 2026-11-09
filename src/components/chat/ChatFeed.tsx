@@ -17,9 +17,10 @@ const EXAMPLE_PROMPTS = [
 interface Props {
   messages: ChatMessage[]
   onExampleClick: (text: string) => void
+  historyLoading?: boolean
 }
 
-export default function ChatFeed({ messages, onExampleClick }: Props) {
+export default function ChatFeed({ messages, onExampleClick, historyLoading = false }: Props) {
   const feedRef = useRef<HTMLDivElement>(null)
 
   // TEMP: ?skeleton in URL forces skeleton visible for review
@@ -31,6 +32,31 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
     if (!el) return
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages.length])
+
+  if (historyLoading) {
+    return (
+      <div ref={feedRef} className="chat-feed" aria-busy="true" aria-label="Loading session history…">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="chat-feed__pair">
+            <div className="chat-feed__user-bubble">
+              <Skeleton height={14} radius="sm" style={{ width: `${55 + i * 15}%` }} />
+              <Skeleton width={80} height={10} radius="sm" style={{ marginTop: 6 }} />
+            </div>
+            <div className="chat-feed__assistant">
+              <div className="chat-feed__skeleton">
+                <div className="chat-feed__skeleton-row">
+                  <Skeleton width={80} height={28} radius="sm" />
+                  <Skeleton width={100} height={12} radius="full" />
+                </div>
+                <Skeleton height={12} radius="sm" style={{ width: '75%' }} />
+                <Skeleton height={12} radius="sm" style={{ width: '55%' }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   if (messages.length === 0 && !previewSkeleton) {
     return (
