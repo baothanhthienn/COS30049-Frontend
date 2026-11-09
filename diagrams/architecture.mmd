@@ -1,0 +1,8 @@
+graph LR
+    A["User\n(Browser)"] -->|"submit prompt"| B["React UI\nVercel"]
+    B -->|"POST /api/classify"| C["FastAPI\nRailway"]
+    C -->|"run model"| D["ML Classifier\n2-stage pipeline"]
+    D -->|"verdict + spans"| C
+    C -->|"save result"| E[("PostgreSQL\nRailway")]
+    C -->|"BLOCKED / ALLOW\nconfidence + spans"| B
+    B -->|"show result"| A

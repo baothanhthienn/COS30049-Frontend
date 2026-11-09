@@ -1,10 +1,9 @@
 # COS30049 — Prompt Injection Detector
 
-**Group:** Session 04 Group 6 · Nguyen Gia Bao Pham, Huu Cuong Nguyen, Ethan Nguyen  
-**Due:** 2026-11-08 23:59 AEDT · Assignment 3 (45%)  
+**Group:** Session 04 Group 6 · Nguyen Gia Bao Pham (Team Leader), Huu Cuong Nguyen, Ethan Nguyen  
 **Live:** [cos-30049-frontend.vercel.app](https://cos-30049-frontend.vercel.app) · [API Docs — Swagger UI](https://cos30049-backend-production.up.railway.app/api/docs) · [API Docs — ReDoc](https://cos30049-backend-production.up.railway.app/api/redoc)
 
-A full-stack web app that classifies free-text input as benign or a prompt injection attempt. Users submit prompts through a ChatGPT-style React UI; a FastAPI backend runs a two-stage ML classifier, persists results in PostgreSQL, and returns a verdict with attack-family label, confidence score, and the specific token spans that drove the decision.
+A fullstack web app that classifies free text input as benign or a prompt injection attempt. Users submit prompts through a chat window React UI; a FastAPI backend runs a two stage ML classifier, persists results in PostgreSQL, and returns a verdict with attack-family label, confidence score, and the specific token spans that drove the decision.
 
 ---
 
@@ -28,47 +27,21 @@ A full-stack web app that classifies free-text input as benign or a prompt injec
 
 ## 1. Architecture
 
-```mermaid
-flowchart TD
-    subgraph Client["Browser (Vercel)"]
-        UI["React 19 SPA\nChatGPT-style UI\nSidebar · Ranking · About"]
-        Store["Zustand Store\nsessionStorage UUID"]
-    end
-
-    subgraph API["FastAPI Backend (Railway)"]
-        Router["Routers\nPOST /api/classify\nGET  /api/sessions\nGET  /api/health"]
-        ML["Two-stage ML Classifier\nStage A — gate\nStage B — family + spans"]
-        Guard["Middleware\nRate limiter · Semaphore\nCORS · Body size cap"]
-    end
-
-    subgraph DB["PostgreSQL (Railway)"]
-        T1[("classifications")]
-        T2[("sessions")]
-    end
-
-    UI -->|"HTTPS JSON\nX-API-Key header"| Guard
-    Guard --> Router
-    Router --> ML
-    ML -->|verdict · confidence\nattack_family · spans| Router
-    Router -->|persist| T1
-    Router -->|upsert| T2
-    Router -->|ClassifyResponse| UI
-    Store <-->|session_id| UI
-```
+![Architecture diagram](diagrams/architecture.png)
 
 ---
 
 ## 2. Screenshots
 
-**Chat — BLOCKED verdict with confidence score, trigger span highlights, and predicted attack families**
+**Chat: BLOCKED verdict with confidence score, trigger span highlights, and predicted attack families**
 
 ![Chat page](src/assets/screenshots/chat-page.jpg)
 
-**Ranking — leaderboard of all classified prompts across sessions, filterable by attack family**
+**Ranking: leaderboard of all classified prompts across sessions, filterable by attack family**
 
 ![Ranking page](src/assets/screenshots/trend-page.jpg)
 
-**About — application overview and capabilities**
+**About: application overview and capabilities**
 
 ![About page](src/assets/screenshots/about-page.jpg)
 
