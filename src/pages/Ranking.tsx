@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { listSessions, fetchHistory, ApiError } from '../api/client'
 import type { AttackFamily, HistoryItem } from '../types/api'
@@ -43,6 +43,8 @@ export default function TrendPage() {
   const { sessionId, messages } = useSessionStore()
   const assistantCount = messages.filter(m => m.role === 'assistant' && m.result).length
   const navigate = useNavigate()
+  const { search } = useLocation()
+  const previewSkeleton = new URLSearchParams(search).has('skeleton')
 
   const [allItems, setAllItems] = useState<RankedItem[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,7 @@ export default function TrendPage() {
   const [filter, setFilter] = useState<Filter>('all')
 
   useEffect(() => {
+    if (previewSkeleton) return
     let cancelled = false
 
     async function loadAll() {
