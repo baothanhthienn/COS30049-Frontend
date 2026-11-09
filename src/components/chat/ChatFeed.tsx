@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { ChatMessage } from '../../store/sessionStore'
 import AssistantResponse from './AssistantResponse'
 import Toast from '../ui/Toast'
+import Skeleton from '../ui/Skeleton'
 import './ChatFeed.css'
 
 const EXAMPLE_PROMPTS = [
@@ -85,15 +86,13 @@ export default function ChatFeed({ messages, onExampleClick }: Props) {
           <div className="chat-feed__assistant">
             {!assistant && (
               <div className="chat-feed__skeleton" aria-label="Analysing…" aria-busy="true">
-                {/* badge row */}
                 <div className="chat-feed__skeleton-row">
-                  <div className="chat-feed__skeleton-badge" />
-                  <div className="chat-feed__skeleton-meter" />
+                  <Skeleton width={80} height={28} radius="sm" />
+                  <Skeleton width={100} height={12} radius="full" />
                 </div>
-                {/* content rows */}
-                <div className="chat-feed__skeleton-line" style={{ width: '80%' }} />
-                <div className="chat-feed__skeleton-line" style={{ width: '60%' }} />
-                <div className="chat-feed__skeleton-line" style={{ width: '40%' }} />
+                <Skeleton height={12} radius="sm" style={{ width: '80%' }} />
+                <Skeleton height={12} radius="sm" style={{ width: '60%' }} />
+                <Skeleton height={12} radius="sm" style={{ width: '40%' }} />
               </div>
             )}
             {assistant?.result && (

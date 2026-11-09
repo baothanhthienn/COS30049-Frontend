@@ -109,34 +109,6 @@
   margin-bottom: var(--space-2);
 }
 
-.chat-feed__skeleton-badge {
-  height: 28px;
-  width: 80px;
-  border-radius: var(--radius-sm);
-  background: var(--color-border);
-  animation: shimmer 1.2s ease-in-out infinite;
-}
-
-.chat-feed__skeleton-meter {
-  height: 12px;
-  width: 100px;
-  border-radius: var(--radius-sm);
-  background: var(--color-border);
-  animation: shimmer 1.2s ease-in-out infinite 0.1s;
-}
-
-.chat-feed__skeleton-line {
-  height: 12px;
-  background: var(--color-border);
-  border-radius: var(--radius-sm);
-  animation: shimmer 1.2s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 0.8; }
-}
-
 .chat-feed__error-wrap {
   display: flex;
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { listSessions, fetchHistory, ApiError } from '../api/client'
 import type { AttackFamily, HistoryItem } from '../types/api'
+import Skeleton from '../components/ui/Skeleton'
 import './Ranking.css'
 
 const ORDERED_FAMILIES: AttackFamily[] = [
@@ -183,7 +184,25 @@ export default function TrendPage() {
         <div>
           <p className="trend-section-label">Detection Results</p>
           {loading ? (
-            <div className="trend-loading" aria-busy="true">Loading…</div>
+            <div className="trend-leaderboard" aria-busy="true" aria-label="Loading results…">
+              <div className="trend-lb-head">
+                <span>#</span>
+                <span>Verdict &amp; Family</span>
+                <span>Confidence</span>
+                <span>Time</span>
+              </div>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="trend-lb-row trend-lb-row--skeleton">
+                  <Skeleton width={20} height={16} radius="sm" />
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <Skeleton width={60} height={20} radius="sm" />
+                    <Skeleton width={120} height={12} radius="sm" />
+                  </span>
+                  <Skeleton width={80} height={12} radius="full" />
+                  <Skeleton width={40} height={12} radius="sm" />
+                </div>
+              ))}
+            </div>
           ) : filteredPoints.length === 0 ? (
             <div className="trend-empty">No data yet — submit some prompts to see rankings.</div>
           ) : (
