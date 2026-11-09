@@ -1,6 +1,6 @@
 # COS30049 — Prompt Injection Detector
 
-**Group:** Session 04 Group 6 · Nguyen Gia Bao Pham (Team Leader), Huu Cuong Nguyen, Ethan Nguyen  
+**Author by:** Nguyen Gia Bao Pham | Fullstack developer  
 **Live:** [cos-30049-frontend.vercel.app](https://cos-30049-frontend.vercel.app) · [API Docs — Swagger UI](https://cos30049-backend-production.up.railway.app/api/docs) · [API Docs — ReDoc](https://cos30049-backend-production.up.railway.app/api/redoc)
 
 A fullstack web app that classifies free text input as benign or a prompt injection attempt. Users submit prompts through a chat window React UI; a FastAPI backend runs a two stage ML classifier, persists results in PostgreSQL, and returns a verdict with attack-family label, confidence score, and the specific token spans that drove the decision.
