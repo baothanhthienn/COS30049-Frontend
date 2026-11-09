@@ -1,37 +1,103 @@
 # COS30049 — Prompt Injection Detector
 
-**Group:** Session 04 Group 6 · Nguyen Gia Bao Pham, Huu Cuong Nguyen, Ethan Nguyen
-**Due:** 2026-11-08 23:59 AEDT · Assignment 3 (45%)
+**Group:** Session 04 Group 6 · Nguyen Gia Bao Pham, Huu Cuong Nguyen, Ethan Nguyen  
+**Due:** 2026-11-08 23:59 AEDT · Assignment 3 (45%)  
+**Live:** [cos-30049-frontend.vercel.app](https://cos-30049-frontend.vercel.app) · [API Docs — Swagger UI](https://cos30049-backend-production.up.railway.app/api/docs) · [API Docs — ReDoc](https://cos30049-backend-production.up.railway.app/api/redoc)
 
 A full-stack web app that classifies free-text input as benign or a prompt injection attempt. Users submit prompts through a ChatGPT-style React UI; a FastAPI backend runs a two-stage ML classifier, persists results in PostgreSQL, and returns a verdict with attack-family label, confidence score, and the specific token spans that drove the decision.
 
-**Live:** [cos-30049-frontend.vercel.app](https://cos-30049-frontend.vercel.app) · [API](https://cos30049-backend-production.up.railway.app/api/docs)
+---
+
+## Table of Contents
+
+1. [Architecture](#1-architecture)
+2. [Screenshots](#2-screenshots)
+3. [Setup & Run](#3-setup--run)
+   - 3.1 [Prerequisites](#31-prerequisites)
+   - 3.2 [Backend](#32-backend)
+   - 3.3 [Frontend](#33-frontend)
+4. [Security](#4-security)
+   - 4.1 [Threat Model](#41-threat-model)
+   - 4.2 [Security Hygiene](#42-security-hygiene)
+   - 4.3 [Defences](#43-defences)
+   - 4.4 [Advanced Attack](#44-advanced-attack)
+5. [Dependencies](#5-dependencies)
+6. [References](#6-references)
 
 ---
 
-## Setup & Run
+## 1. Architecture
 
-### Prerequisites
+```mermaid
+flowchart TD
+    subgraph Client["Browser (Vercel)"]
+        UI["React 19 SPA\nChatGPT-style UI\nSidebar · Ranking · About"]
+        Store["Zustand Store\nsessionStorage UUID"]
+    end
 
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL 15+ (local) or Railway managed DB (production)
+    subgraph API["FastAPI Backend (Railway)"]
+        Router["Routers\nPOST /api/classify\nGET  /api/sessions\nGET  /api/health"]
+        ML["Two-stage ML Classifier\nStage A — gate\nStage B — family + spans"]
+        Guard["Middleware\nRate limiter · Semaphore\nCORS · Body size cap"]
+    end
 
-### Backend
+    subgraph DB["PostgreSQL (Railway)"]
+        T1[("classifications")]
+        T2[("sessions")]
+    end
+
+    UI -->|"HTTPS JSON\nX-API-Key header"| Guard
+    Guard --> Router
+    Router --> ML
+    ML -->|verdict · confidence\nattack_family · spans| Router
+    Router -->|persist| T1
+    Router -->|upsert| T2
+    Router -->|ClassifyResponse| UI
+    Store <-->|session_id| UI
+```
+
+---
+
+## 2. Screenshots
+
+**Chat — BLOCKED verdict with confidence score, trigger span highlights, and predicted attack families**
+
+![Chat page](src/assets/screenshots/chat-page.jpg)
+
+**Ranking — leaderboard of all classified prompts across sessions, filterable by attack family**
+
+![Ranking page](src/assets/screenshots/trend-page.jpg)
+
+**About — application overview and capabilities**
+
+![About page](src/assets/screenshots/about-page.jpg)
+
+---
+
+## 3. Setup & Run
+
+### 3.1 Prerequisites
+
+| Tool | Version |
+|---|---|
+| Python | 3.11+ |
+| Node.js | 20+ |
+| PostgreSQL | 15+ (local) or Railway managed DB |
+
+### 3.2 Backend
 
 The backend lives in the **Assignment 2** repository (separate folder from this one).
 
 ```bash
 # macOS
 brew install postgresql@15
-# Create the database (one-time)
 createdb prompt_injection_db
 
 cd "Assignment 2"
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # fill in DATABASE_URL and API_KEY
-alembic upgrade head           # create tables
+alembic upgrade head
 uvicorn api.main:app --reload
 ```
 
@@ -51,18 +117,24 @@ uvicorn api.main:app --reload
 ```powershell
 # Windows (PowerShell)
 # Install PostgreSQL from https://www.postgresql.org/download/windows/
-# Then create the database in psql: CREATE DATABASE prompt_injection_db;
+# Then in psql: CREATE DATABASE prompt_injection_db;
 cd "Assignment 2"
 python -m venv .venv; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env          # fill in DATABASE_URL and API_KEY
+cp .env.example .env
 alembic upgrade head
 uvicorn api.main:app --reload
 ```
 
-API docs available at `http://localhost:8000/api/docs` once running.
+FastAPI generates interactive API docs automatically — no extra setup needed:
 
-### Frontend
+| Interface | URL |
+|---|---|
+| Swagger UI (try it live) | `http://localhost:8000/api/docs` |
+| ReDoc (clean reference) | `http://localhost:8000/api/redoc` |
+| OpenAPI JSON schema | `http://localhost:8000/api/openapi.json` |
+
+### 3.3 Frontend
 
 ```bash
 npm install
@@ -74,47 +146,9 @@ Open `http://localhost:5173`.
 
 ---
 
-## Architecture
+## 4. Security
 
-```
-┌─────────────────────┐        HTTPS/JSON        ┌──────────────────────┐
-│   React Frontend     │ ───────────────────────▶ │   FastAPI Backend     │
-│   (Vercel)           │ ◀─────────────────────── │   (Railway)           │
-│                       │      verdict + spans      │                       │
-│  ChatGPT-style UI     │                           │  Input validation     │
-│  Sidebar history      │                           │  Two-stage ML         │
-│  Span highlighting    │                           │  Postgres writer      │
-│  Session trend view   │                           │  Rate limiting        │
-└──────────┬────────────┘                           └──────────┬────────────┘
-           │  session_id (sessionStorage, UUID v4)             │
-           ▼                                                    ▼
-                                                       ┌──────────────────┐
-                                                       │   PostgreSQL       │
-                                                       │   (Railway)        │
-                                                       │  classifications   │
-                                                       │  sessions          │
-                                                       └───────────────────┘
-```
-
----
-
-## Screenshots
-
-**Chat — submit a prompt and receive a verdict with confidence and trigger spans**
-
-![Chat page](src/assets/screenshots/chat-page.jpg)
-
-**Ranking — leaderboard of all classified prompts across sessions, filterable by attack family**
-
-![Ranking page](src/assets/screenshots/trend-page.jpg)
-
-**About — threat model summary and attack family reference**
-
-![About page](src/assets/screenshots/about-page.jpg)
-
----
-
-## Threat Model
+### 4.1 Threat Model
 
 **Who attacks?** An operator or researcher attempting to smuggle a prompt injection past this guardrail so it reaches a downstream LLM undetected.
 
@@ -122,58 +156,40 @@ Open `http://localhost:5173`.
 
 **What can they do?** Submit crafted strings through the public `/api/classify` endpoint; probe timing and response-size side-channels; apply character-level obfuscation (homoglyphs, zero-width characters, encoding tricks) to evade the classifier's feature extraction.
 
-**§2.7 Risk mapping:**
-
-| Risk | Applies? | Justification |
-|---|---|---|
-| SQL Injection | ✓ | App persists every classification in PostgreSQL; a search endpoint accepts user-controlled query params |
-| Denial of Service | ✓ | ML inference (Stage A + B) is CPU-bound; a flood of max-length inputs can saturate the event loop |
-| Detection Evasion | ✓ (§2.8) | Character-level obfuscation can fool token-level feature extraction without normalisation |
-| SSRF | ✗ | App makes no outbound HTTP requests; classifier runs fully local |
-| Broken Access Control | ✗ | No user accounts; session identity is a client-generated UUID with no privilege model |
-| XSS | ✗ | React escapes all user-controlled output; `dangerouslySetInnerHTML` is banned by lint rule |
-
-**Defences implemented (§2.7):**
-- **Denial of Service** (Advanced, 4 marks) — `asyncio.Semaphore` concurrency cap + custom sliding-window rate limiter + Pydantic input size cap. See `attacks/demo_dos.py` in the backend.
-- **SQL Injection** (Intermediate, 3 marks) — all queries via SQLAlchemy ORM / bound parameters; no raw f-string SQL. See `attacks/demo_sqli.py` in the backend.
-
-**Advanced attack (§2.8):**
-- **Detection Evasion** — Unicode homoglyphs (Cyrillic look-alikes), zero-width chars, mixed scripts. NFKC normalisation in `preprocessing.py` restores original characters before feature extraction. Before/after measurement: `attacks/measure_evasion.py` in the backend.
-
----
-
-## Named Defences (§2.7)
-
-1. **Denial of Service** (Advanced) — `api/main.py` (rate-limit middleware + semaphore) + `attacks/demo_dos.py`
-2. **SQL Injection** (Intermediate) — `api/db/models.py` + `api/routers/sessions.py` (ORM only) + `attacks/demo_sqli.py`
-
-## Named Advanced Attack (§2.8)
-
-**Detection Evasion** — `attacks/measure_evasion.py` (in backend repo)
-
----
-
-## Security Hygiene (§2.3)
-
-Four measures required before §2.7/§2.8 work is counted:
+### 4.2 Security Hygiene
 
 | # | Measure | Where enforced |
-|---|---------|----------------|
-| 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` is not used anywhere in the React source | `frontend/src/` (grep-verified) |
-| 2 | **Input size cap** — Pydantic `text: str = Field(max_length=10_000)` on `POST /api/classify`; `limit_body_size` middleware rejects bodies > 1 MB | `api/routers/classify.py` |
-| 3 | **CORS allowlist** — explicit allowlist: `https://cos-30049-frontend.vercel.app` + `http://localhost:5173`; wildcard `*` is never set | `api/main.py` + `api/core/errors.py` |
-| 4 | **Secrets in env only** — no credentials in source; `.env` files are gitignored; `.env.example` ships with placeholder values. `VITE_API_KEY` is a low-privilege API token (rate-limit identity only, grants no admin access); it is intentionally public-facing and treated as such — analogous to a public site key. The backend enforces all privilege checks independently. | `.env.example` · `.gitignore` · `src/api/client.ts` |
+|---|---|---|
+| 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` is banned by ESLint rule and verified in CI | `eslint.config.js` · `.github/workflows/ci.yml` |
+| 2 | **Input size cap** — Pydantic `max_length=10_000` on `POST /api/classify`; middleware rejects bodies > 1 MB | `api/routers/classify.py` |
+| 3 | **CORS allowlist** — `https://cos-30049-frontend.vercel.app` + `http://localhost:5173` only; `*` never set | `api/main.py` |
+| 4 | **Secrets in env only** — `.env` files are gitignored; `.env.example` ships with placeholders. `VITE_API_KEY` is a low-privilege rate-limit identity token only — no admin access, all privilege checks enforced server-side independently | `.env.example` · `.gitignore` |
+
+### 4.3 Defences
+
+| Defence | Level | Mechanism | Demo |
+|---|---|---|---|
+| **Denial of Service** | Advanced | `asyncio.Semaphore` concurrency cap + sliding-window rate limiter + Pydantic input size cap | `attacks/demo_dos.py` |
+| **SQL Injection** | Intermediate | All queries via SQLAlchemy ORM / bound parameters; no raw f-string SQL | `attacks/demo_sqli.py` |
+
+### 4.4 Advanced Attack
+
+**Detection Evasion (§2.8)** — Unicode homoglyphs (Cyrillic look-alikes), zero-width chars, and mixed scripts change what the model sees without changing what a person reads. NFKC normalisation in `preprocessing.py` restores canonical characters before feature extraction.
+
+Measurement script: `attacks/measure_evasion.py` (backend repo) — reports evasion success rate before and after the normalisation defence.
 
 ---
 
-## Dependencies
+## 5. Dependencies
 
-- Backend: see `backend/requirements.txt`
-- Frontend: see `frontend/package.json`
+| Layer | File |
+|---|---|
+| Frontend | `package.json` · `package-lock.json` |
+| Backend | `Assignment 2/requirements.txt` |
 
 ---
 
-## References
+## 6. References
 
 - Boucher, N., Shumailov, I., Anderson, R. and Papernot, N. (2022) 'Bad characters: Imperceptible NLP attacks', *2022 IEEE Symposium on Security and Privacy*.
 - OpenAI (2024) *ChatGPT UI Kit (Community)*. Figma Community.
@@ -182,6 +198,3 @@ Four measures required before §2.7/§2.8 work is counted:
 
 ---
 
-## Generative AI Usage
-
-This project used Claude (Anthropic) to assist with system design documentation, code scaffolding, and security evaluation scripts. All generated code was reviewed, tested, and adapted by team members. No AI-generated content was submitted without understanding and verification.
