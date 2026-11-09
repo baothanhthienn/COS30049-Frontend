@@ -5,7 +5,7 @@
 
 A full-stack web app that classifies free-text input as benign or a prompt injection attempt. Users submit prompts through a ChatGPT-style React UI; a FastAPI backend runs a two-stage ML classifier, persists results in PostgreSQL, and returns a verdict with attack-family label, confidence score, and the specific token spans that drove the decision.
 
-**Live:** [Vercel frontend URL] · [Railway backend URL] _(filled after deployment)_
+**Live:** [cos-30049-frontend.vercel.app](https://cos-30049-frontend.vercel.app) · [API](https://cos30049-backend-production.up.railway.app/api/docs)
 
 ---
 
@@ -65,7 +65,6 @@ API docs available at `http://localhost:8000/api/docs` once running.
 ### Frontend
 
 ```bash
-cd frontend
 npm install
 cp .env.example .env.local     # set VITE_API_BASE_URL and VITE_API_KEY
 npm run dev
@@ -87,7 +86,7 @@ Open `http://localhost:5173`.
 │  Span highlighting    │                           │  Postgres writer      │
 │  Session trend view   │                           │  Rate limiting        │
 └──────────┬────────────┘                           └──────────┬────────────┘
-           │  session_id (localStorage, UUID v4)               │
+           │  session_id (sessionStorage, UUID v4)             │
            ▼                                                    ▼
                                                        ┌──────────────────┐
                                                        │   PostgreSQL       │
@@ -96,6 +95,22 @@ Open `http://localhost:5173`.
                                                        │  sessions          │
                                                        └───────────────────┘
 ```
+
+---
+
+## Screenshots
+
+**Chat — submit a prompt and receive a verdict with confidence and trigger spans**
+
+![Chat page](src/assets/screenshots/chat-page.jpg)
+
+**Ranking — leaderboard of all classified prompts across sessions, filterable by attack family**
+
+![Ranking page](src/assets/screenshots/trend-page.jpg)
+
+**About — threat model summary and attack family reference**
+
+![About page](src/assets/screenshots/about-page.jpg)
 
 ---
 
@@ -146,8 +161,8 @@ Four measures required before §2.7/§2.8 work is counted:
 |---|---------|----------------|
 | 1 | **No raw HTML rendering** — `dangerouslySetInnerHTML` is not used anywhere in the React source | `frontend/src/` (grep-verified) |
 | 2 | **Input size cap** — Pydantic `text: str = Field(max_length=10_000)` on `POST /api/classify`; `limit_body_size` middleware rejects bodies > 1 MB | `api/routers/classify.py` |
-| 3 | **CORS allowlist** — explicit allowlist: `cos-30049-frontend.vercel.app` + `localhost:5173`; wildcard `*` is never set | `api/main.py` + `api/core/errors.py` |
-| 4 | **Secrets in env only** — no credentials in source; `.env` files are gitignored; `.env.example` ships with placeholder values | `.env.example` · `.gitignore` |
+| 3 | **CORS allowlist** — explicit allowlist: `https://cos-30049-frontend.vercel.app` + `http://localhost:5173`; wildcard `*` is never set | `api/main.py` + `api/core/errors.py` |
+| 4 | **Secrets in env only** — no credentials in source; `.env` files are gitignored; `.env.example` ships with placeholder values. `VITE_API_KEY` is a low-privilege API token (rate-limit identity only, grants no admin access); it is intentionally public-facing and treated as such — analogous to a public site key. The backend enforces all privilege checks independently. | `.env.example` · `.gitignore` · `src/api/client.ts` |
 
 ---
 
